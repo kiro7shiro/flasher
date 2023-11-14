@@ -39,9 +39,9 @@ class Grid extends Visualizer {
                 color.alpha = average[index]
                 context.fillStyle = color.toString()
                 const width = ((average[index] / 255) * cellWidth) / 2
-                //const height = ((average[index] / 255) * cellHeight) / 2
+                const height = ((average[index] / 255) * cellHeight) / 2
                 //const width = cellWidth / 2
-                const height = cellHeight / 2
+                //const height = cellHeight / 2
                 context.fillRect(x + weightHalf, y - weightHalf, -width, height)
                 context.fillRect(x + weightHalf, y + weightHalf, -width, -height)
                 context.fillRect(x - weightHalf, y + weightHalf, width, -height)

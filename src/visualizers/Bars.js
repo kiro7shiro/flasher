@@ -25,7 +25,6 @@ class Bars extends Visualizer {
         super(sound)
         this.barsCount = barsCount === null ? this.buffer.length : barsCount
         this.barsColors = rainbow(this.barsCount)
-        this.connect(sound)
     }
     draw(screen) {
         const { analyser, buffer, barsCount } = this

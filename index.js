@@ -15,12 +15,19 @@ const sound = new Sound()
 sound.connect(player)
 window.sound = sound
 
-const screen = new Screen(1024, 512)
+const screen = new Screen(512, 256)
 visualizer.append(screen.canvas)
+
+const lowpass = sound.createBiquadFilter('lowpass', { frequency: 22000, gain: 0 })
+const highpass = sound.createBiquadFilter('highpass', { frequency: 5500, gain: -0 })
 
 const waveform = new Waveform(sound, { lineWidth: 10 })
 const bars = new Bars(sound, { barsCount: 32 })
-const grid = new Grid(sound, 32, 1)
+const grid = new Grid(sound, 16, 8)
+
+grid.audioGraph.push(lowpass)
+grid.audioGraph.push(highpass)
+grid.connect(sound)
 
 window.components = [waveform, bars, grid]
 
@@ -28,7 +35,6 @@ visualizer.append(grid.controls)
 
 const background = new Color('rgb(64, 64, 64)')
 screen.drawBackground(background.toString())
-
 
 function draw() {
     screen.clear()
