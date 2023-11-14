@@ -22,7 +22,7 @@ class Grid extends Visualizer {
         }
         // draw grid
         const { context } = screen
-        const weight = 1
+        const weight = .125
         const weightHalf = weight / 2
         const availWidth = screen.width - weight
         const availHeight = screen.height - weight
@@ -36,7 +36,7 @@ class Grid extends Visualizer {
             for (let row = 0; row < this.rows; row++) {
                 const y = row * cellHeight + weightHalf
                 const color = this.cellsColors[index]
-                color.alpha = average[index]
+                color.alpha = average[index] / 100
                 context.fillStyle = color.toString()
                 const width = ((average[index] / 255) * cellWidth) / 2
                 const height = ((average[index] / 255) * cellHeight) / 2
