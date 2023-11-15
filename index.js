@@ -24,7 +24,7 @@ const highpass = sound.createBiquadFilter('highpass', { frequency: 11000, gain: 
 const waveform = new Waveform(sound, { lineWidth: 10 })
 const bars = new Bars(sound, { barsCount: 32 })
 //const grid = new Grid(sound, 8, 4)
-const grid = new Grid(sound, 64, 1)
+const grid = new Grid(sound, 128, 1)
 
 //grid.audioGraph.push(lowpass)
 grid.audioGraph.push(highpass)
