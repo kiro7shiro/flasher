@@ -58,8 +58,8 @@ async function play(channel) {
     })
     localStorage.setItem('lastChannel', channel.displayName)
     player.src = channel.streams[0].url
-    player.play()
-    draw()
+    //player.play()
+    //draw()
 }
 
 async function main() {
@@ -77,4 +77,13 @@ async function main() {
     await play(result)
 }
 
-window.onload = main
+//window.onload = main
+
+async function testEjs() {
+    const response = await fetch('src/visualizers/controls/visualizer.ejs')
+    const template = await response.text()
+    const output = ejs.render(template, { minDecibels: 1, maxDecibels: 100, smoothingTimeConstant: 0.33 })
+    console.log(output)
+}
+
+testEjs()
