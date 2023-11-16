@@ -79,10 +79,10 @@ async function main() {
 
 //window.onload = main
 
+import { renderFile } from './src/visualizers/controls/controls.js'
+
 async function testEjs() {
-    const response = await fetch('src/visualizers/controls/visualizer.ejs')
-    const template = await response.text()
-    const output = ejs.render(template, { minDecibels: 1, maxDecibels: 100, smoothingTimeConstant: 0.33 })
+    const output = await renderFile('src/visualizers/controls/visualizer.ejs', { minDecibels: 1, maxDecibels: 100, smoothingTimeConstant: 0.33 })
     console.log(output)
 }
 
