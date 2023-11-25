@@ -1,5 +1,5 @@
 import { Sound } from '../Sound.js'
-import { renderFile } from './controls/controls.js'
+import { addAnalyzerEvents, addAudioGraphEvents } from './controls.js'
 
 class Visualizer {
     constructor(sound) {
@@ -9,39 +9,9 @@ class Visualizer {
         this.connected = false
         this.source = null
     }
-    get controls() {
-        const container = document.createElement('div')
-        container.classList.add('w3-container')
-        container.innerHTML = renderFile('src/visualizers/controls/visualizer.ejs', {
-            minDecibels: this.analyser.minDecibels,
-            maxDecibels: this.analyser.maxDecibels,
-            smoothingTimeConstant: this.analyser.smoothingTimeConstant
-        })
-        console.log(container.innerHTML)
-        /* container.innerHTML = `
-        <div>minDecibels</div>
-        <input type="range" min="-100" max="0" value="${this.analyser.minDecibels}" id="minDecibels">
-        <br>
-        <div>maxDecibels</div>
-        <input type="range" min="-100" max="0" value="${this.analyser.maxDecibels}" id="maxDecibels">
-        <br>
-        <div>smoothingTimeConstant</div>
-        <input type="range" min="0" max="1" step=".05" value="${this.analyser.smoothingTimeConstant}" id="smoothingTimeConstant">
-        ` */
-        const self = this
-        const minDecibels = container.querySelector('#minDecibels')
-        const maxDecibels = container.querySelector('#maxDecibels')
-        const smoothingTimeConstant = container.querySelector('#smoothingTimeConstant')
-        minDecibels.addEventListener('change', function (event) {
-            self.analyser.minDecibels = event.target.value
-            console.log(event.target.value)
-        })
-        maxDecibels.addEventListener('change', function (event) {
-            self.analyser.maxDecibels = event.target.value
-        })
-        smoothingTimeConstant.addEventListener('change', function (event) {
-            self.analyser.smoothingTimeConstant = event.target.value
-        })
+    addControlsEvents(html) {
+        const container = addAnalyzerEvents(this.analyser, html)
+        addAudioGraphEvents(this, container)
         return container
     }
     connect(sound) {

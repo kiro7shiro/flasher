@@ -1,5 +1,6 @@
 import { Visualizer } from './Visualizer.js'
 import { rainbow } from './Bars.js'
+import { addGridEvents } from './controls.js'
 
 class Grid extends Visualizer {
     constructor(sound, cols, rows) {
@@ -8,6 +9,11 @@ class Grid extends Visualizer {
         this.rows = rows
         this.length = cols * rows
         this.cellsColors = rainbow(this.length)
+    }
+    addControlsEvents(html) {
+        const container = super.addControlsEvents(html)
+        addGridEvents(this, container)
+        return container
     }
     draw(screen) {
         // get bytes
