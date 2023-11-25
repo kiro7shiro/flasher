@@ -11,4 +11,4 @@ async function currentTrack(channel) {
     return json.trackInfo
 }
 
-export { channels, currentTrack }
+module.exports = { channels, currentTrack }

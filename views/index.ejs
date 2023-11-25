@@ -1,0 +1,26 @@
+<div class="w3-container">
+    <div class="w3-row w3-padding-16">
+        <div class="w3-container w3-third">
+            <h1>channels</h1>
+            <ul class="w3-ul" id="streams">
+                <%- include('partials/channel', { displayName }) %>
+            </ul>
+        </div>
+        <div class="w3-container w3-rest" id="visualizer">
+            <h1>visualizer</h1>
+        </div>
+    </div>
+</div>
+<div class="w3-container">
+    <div class="w3-row w3-padding-16">
+        <div class="w3-container">
+            <h1>player</h1>
+            <div class="w3-container">
+                <h4 id="currentTrack">test</h4>
+            </div>
+            <audio src="<%= stream %>" controls crossorigin="anonymous" id="player" style="width: 100%;"></audio>
+        </div>
+    </div>
+</div>
+<script src="ejs/ejs.js"></script>
+<script type="module" src="src/index.js"></script>
