@@ -19,8 +19,10 @@ async function main() {
     visualizer.append(screen.canvas)
     
     const highpass = sound.createBiquadFilter('highpass', { frequency: 11000, gain: 40 })
+    const lowpass = sound.createBiquadFilter('lowpass', { frequency: 11000, gain: 40 })
     
     const grid = new Grid(sound, 16, 8)
+    grid.audioGraph.push(lowpass)
     grid.audioGraph.push(highpass)
     grid.connect(sound)
     

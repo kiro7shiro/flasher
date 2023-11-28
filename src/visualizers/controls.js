@@ -5,19 +5,17 @@ export async function getControls(visualizer) {
     // increase count
     if (!visualizers[className]) visualizer[className] = 0
     visualizer[className]++
-    // get class controls
-    const resp = await fetch(`./controls?visualizer=${className}&id=${className}${visualizer[className]}`)
-    let html = await resp.text()
-    // get audio graph controls
+    // build audio graph query
+    let audioGraph = []
     for (let aCnt = 0; aCnt < visualizer.audioGraph.length; aCnt++) {
         const node = visualizer.audioGraph[aCnt]
         const nodeClassName = node.constructor.name
-        if (!visualizers[nodeClassName]) visualizer[nodeClassName] = 0
-        visualizer[nodeClassName]++
-        const resp2 = await fetch(`./controls?visualizer=${nodeClassName}&id=${nodeClassName}${visualizer[nodeClassName]}`)
-        const html2 = await resp2.text()
-        html += html2
+        audioGraph.push(nodeClassName)
     }
+    // get class controls
+    const resp = await fetch(`./controls?visualizer=${className}&id=${className}${visualizer[className]}&audioGraph=${audioGraph.join()}`)
+    let html = await resp.text()
+    // get audio graph controls
     const controls = visualizer.addControlsEvents(html)
     return controls
 }
@@ -52,6 +50,7 @@ const audioGraphEvents = {
         const gain = container.querySelector('#gain')
         frequency.addEventListener('change', function (event) {
             filter.frequency.value = event.target.value
+            console.log(filter.frequency.value)
         })
         detune.addEventListener('change', function (event) {
             filter.detune.value = event.target.value
@@ -74,7 +73,9 @@ export function addAudioGraphEvents(visualizer, container) {
         const node = visualizer.audioGraph[nCnt]
         const nodeClassName = node.constructor.name
         const events = audioGraphEvents[nodeClassName]
-        events(node, container)
+        const id = `${nodeClassName}${nCnt + 1}`
+        const nodeContainer = container.querySelector(`#${id}`)
+        events(node, nodeContainer)
     }
 }
 

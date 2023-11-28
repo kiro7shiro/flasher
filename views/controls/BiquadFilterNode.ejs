@@ -1,8 +1,7 @@
 <div class="w3-row" id="<%= id %>">
     <h6><%= id %></h6>
     <div class="w3-quarter w3-center">
-        <div>freq</div>
-        <input type="range" orient="vertical" min="20" max="22000" value="0" id="frequency">
+        <%- include('Fader', { title: 'freq', id: 'frequency', min: '20', max: '22000', value: '0'}) %>
     </div>
     <div class="w3-quarter w3-center">
         <div>detune</div>

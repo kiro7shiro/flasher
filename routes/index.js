@@ -18,8 +18,10 @@ router.get('/', async function (req, res) {
 
 router.get('/controls', function (req, res) {
     console.log(req.query)
-    const { visualizer, id } = req.query
-    res.render(`controls/${visualizer}`, { id, layout: false })
+    const { visualizer, id, audioGraph } = req.query
+    const temp = audioGraph?.split(',')
+    console.log(temp)
+    res.render(`controls/${visualizer}`, { id, audioGraph: temp, layout: false })
 })
 
 module.exports = router
