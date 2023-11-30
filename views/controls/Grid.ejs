@@ -18,8 +18,8 @@
             <% let count = 0 %>
             <% audioGraph.forEach((node) => { %>
                 <% count++ %>
-                <div class="w3-half">
-                    <%- include(node, {id: `${node}${count}`}) %>
+                <div class="w3-col">
+                    <%- include(node.class, { id: `${node.class}${count}` }) %>
                 </div>
             <% }) %>
         </div>

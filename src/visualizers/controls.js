@@ -1,25 +1,43 @@
-const visualizers = {}
+import { Visualizer } from './Visualizer.js'
+import { Grid } from './Grid.js'
 
+/**
+ * Get the html controls for a visualizer.
+ * Adds events, too.
+ * @param {Visualizer} visualizer the visualizer to get the controls for
+ * @returns {HTMLDivElement}
+ */
 export async function getControls(visualizer) {
-    const className = visualizer.constructor.name
-    // increase count
-    if (!visualizers[className]) visualizer[className] = 0
-    visualizer[className]++
+    const visualizerClass = visualizer.constructor.name
     // build audio graph query
-    let audioGraph = []
+    const audioGraph = []
     for (let aCnt = 0; aCnt < visualizer.audioGraph.length; aCnt++) {
         const node = visualizer.audioGraph[aCnt]
-        const nodeClassName = node.constructor.name
-        audioGraph.push(nodeClassName)
+        const nodeClass = node.constructor.name
+        const data = {
+            class: nodeClass,
+            type: node.type
+        }
+        audioGraph.push(data)
     }
+    // stringify audioGraph
+    const params = new URLSearchParams()
+    params.append('visualizer', visualizerClass)
+    params.append('audioGraph', JSON.stringify(audioGraph))
     // get class controls
-    const resp = await fetch(`./controls?visualizer=${className}&id=${className}${visualizer[className]}&audioGraph=${audioGraph.join()}`)
-    let html = await resp.text()
+    const resp = await fetch(`./controls?${params}`)
+    const html = await resp.text()
     // get audio graph controls
     const controls = visualizer.addControlsEvents(html)
     return controls
 }
 
+/**
+ * Add events for an analyser node
+ * @param {AnalyserNode} analyser the analyser to bind the events for
+ * @param {HTMLDivElement} html the html container to wich the events are added
+ * @returns {HTMLDivElement}
+ */
 export function addAnalyzerEvents(analyser, html) {
     const container = document.createElement('div')
     container.classList.add('w3-container')
@@ -42,6 +60,9 @@ export function addAnalyzerEvents(analyser, html) {
     return container
 }
 
+/**
+ * Holds events for each AudioNode from WebAudioApi
+ */
 const audioGraphEvents = {
     BiquadFilterNode: function (filter, container) {
         const frequency = container.querySelector('#frequency')
@@ -68,6 +89,11 @@ const audioGraphEvents = {
     }
 }
 
+/**
+ * Add events for each node in the audioGraph of a visualizer
+ * @param {Visualizer} visualizer the visualizer to bind the events
+ * @param {HTMLDivElement} container the html container to wich the events are added
+ */
 export function addAudioGraphEvents(visualizer, container) {
     for (let nCnt = 0; nCnt < visualizer.audioGraph.length; nCnt++) {
         const node = visualizer.audioGraph[nCnt]
@@ -79,6 +105,11 @@ export function addAudioGraphEvents(visualizer, container) {
     }
 }
 
+/**
+ * Add events for a Grid.js visualizer class
+ * @param {Grid} grid a grid visualizer class to bind the events
+ * @param {HTMLDivElement} container the html container to wich the events are added
+ */
 export function addGridEvents(grid, container) {
     const cols = container.querySelector('#cols')
     const rows = container.querySelector('#rows')

@@ -16,12 +16,20 @@ router.get('/', async function (req, res) {
     })
 })
 
+const visualizers = {}
+
 router.get('/controls', function (req, res) {
     console.log(req.query)
-    const { visualizer, id, audioGraph } = req.query
-    const temp = audioGraph?.split(',')
-    console.log(temp)
-    res.render(`controls/${visualizer}`, { id, audioGraph: temp, layout: false })
+    const { visualizer, audioGraph: temp } = req.query
+    // increase count
+    if (!visualizers[visualizer]) visualizers[visualizer] = 0
+    visualizers[visualizer]++
+    const id = `${visualizer}${visualizers[visualizer]}`
+    // parse audioGraph
+    const audioGraph = JSON.parse(temp)
+    // render controls
+    res.render(`controls/${visualizer}`, { id, audioGraph, layout: false })
 })
 
 module.exports = router
+
