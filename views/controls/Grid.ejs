@@ -1,7 +1,7 @@
 <div class="w3-container" id="<%= id %>">
     <h4><%= id %></h4>
     <div class="w3-row w3-border-top w3-border-bottom">
-        <div class="w3-third w3-border-right">
+        <div class="w3-quarter w3-border-right w3-padding">
             <div class="w3-row">
                 <div>cols</div>
                 <input class="w3-input" type="number" name="cols" id="cols">
@@ -11,14 +11,15 @@
                 <input class="w3-input" type="number" name="rows" id="rows">
             </div>
         </div>
-        <div class="w3-third w3-border-right">
+        <div class="w3-quarter w3-border-right w3-padding">
             <%- include('AnalyzerNode') %>
         </div>
-        <div class="w3-third">
+        <div class="w3-rest">
             <% let count = 0 %>
+            <% let prct = 100 / audioGraph.length %>
             <% audioGraph.forEach((node) => { %>
                 <% count++ %>
-                <div class="w3-col">
+                <div <% /* eslint-disable css-propertyvalueexpected */ %> class="w3-col w3-padding" style="width: <%= prct %>%;">
                     <%- include(node.class, { id: `${node.class}${count}` }) %>
                 </div>
             <% }) %>
