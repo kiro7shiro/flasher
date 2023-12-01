@@ -22,12 +22,26 @@ async function main() {
     const lowpass = sound.createBiquadFilter('lowpass', { frequency: 11000, gain: 40 })
     
     const grid = new Grid(sound, 16, 8)
-    grid.audioGraph.push(lowpass)
-    grid.audioGraph.push(highpass)
+    //grid.audioGraph.push(lowpass)
+    //grid.audioGraph.push(highpass)
     grid.connect(sound)
+
+    const wave = new Waveform(sound)
+    wave.audioGraph.push(lowpass)
+    wave.connect(sound)
+
+    const bars = new Bars(sound)
+    bars.audioGraph.push(highpass)
+    bars.connect(sound)
     
-    const controls = await getControls(grid)
-    visualizer.append(controls)
+    const gridControls = await getControls(grid)
+    //visualizer.append(gridControls)
+
+    const waveControls = await getControls(wave)
+    visualizer.append(waveControls)
+
+    /* const barsControls = await getControls(bars)
+    visualizer.append(barsControls) */
     
     const background = new Color('rgb(32, 32, 32)')
     screen.drawBackground(background.toString())    
@@ -35,7 +49,9 @@ async function main() {
     function draw() {
         screen.clear()
         screen.drawBackground(background.toString())
-        grid.draw(screen)
+        //bars.draw(screen)
+        //grid.draw(screen)
+        wave.draw(screen)
         requestAnimationFrame(draw)
     }
     

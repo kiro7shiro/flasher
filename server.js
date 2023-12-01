@@ -25,6 +25,7 @@ async function main() {
     app.use(require('express-ejs-layouts'))
     app.use('/ejs', express.static(path.join(__dirname, 'node_modules/ejs')))
     // static
+    app.use('/bin', express.static(path.join(__dirname, 'bin')))
     app.use('/src', express.static(path.join(__dirname, 'src')))
     app.use('/views', express.static(path.join(__dirname, 'views')))
     // routes

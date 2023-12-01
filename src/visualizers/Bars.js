@@ -27,6 +27,7 @@ class Bars extends Visualizer {
         this.barsColors = rainbow(this.barsCount)
     }
     draw(screen) {
+        super.draw(screen)
         const { analyser, buffer, barsCount } = this
         analyser.getByteFrequencyData(buffer)
         const chunkSize = buffer.length / barsCount

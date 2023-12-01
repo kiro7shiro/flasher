@@ -71,7 +71,6 @@ const audioGraphEvents = {
         const gain = container.querySelector('#gain')
         frequency.addEventListener('change', function (event) {
             filter.frequency.value = event.target.value
-            console.log(filter.frequency.value)
         })
         detune.addEventListener('change', function (event) {
             filter.detune.value = event.target.value
