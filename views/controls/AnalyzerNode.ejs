@@ -1,15 +1,12 @@
 <div class="w3-row" id="<%= id %>AnalyzerNode">
     <h6>Analyzer</h6>
     <div class="w3-third w3-center">
-        <div>minDb</div>
-        <input type="range" orient="vertical" min="-100" max="0" value="0" id="minDecibels">
+        <%- include('Fader', { title: 'minDb', id: 'minDecibels', min: '-100', max: '0', value: '0'}) %>
     </div>
     <div class="w3-third w3-center">
-        <div>maxDb</div>
-        <input type="range" orient="vertical" min="-100" max="0" value="0" id="maxDecibels">
+        <%- include('Fader', { title: 'maxDb', id: 'maxDecibels', min: '-100', max: '0', value: '0'}) %>
     </div>
     <div class="w3-third w3-center">
-        <div>time</div>
-        <input type="range" orient="vertical" min="0" max="1" step=".05" value="0.5" id="smoothingTimeConstant">
+        <%- include('Fader', { title: 'time', id: 'smoothingTimeConstant', min: '0', max: '1', step: '.05', value: '0'}) %>
     </div>
 </div>
