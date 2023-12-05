@@ -1,29 +1,39 @@
 import { Sound } from '../Sound.js'
 import { addAnalyzerEvents, addAudioGraphEvents } from './controls.js'
 
+const bandDefaults = {
+    template: '0123', // alternately [0, 1, 2, 3]
+    from: 1, // minimum midi note to watch
+    to: 160, // maximum midi note, up to 160
+    low: 1, // Low velocity/power threshold
+    high: 128, // High velocity/power threshold
+    smooth: [0.1, 0.1, 0.1, 0.1], // Exponential smoothing factors for the values
+    adapt: [1, 1, 1, 1], // Adaptive bounds setup
+    snap: 0.33
+}
+
 class Visualizer {
     constructor(sound) {
         this.analyser = sound.createAnalyser()
         this.audioGraph = []
         this.buffer = new Uint8Array(this.analyser.frequencyBinCount)
         this.connected = false
+        const clubberAnalyzer = sound.createAnalyser()
+        sound.source.connect(clubberAnalyzer)
         this.clubber = new Clubber({
-            size: this.analyser.fftSize, // Samples for the fourier transform. The produced linear frequency bins will be 1/2 that.
-            mute: false, // whether the audio source should be connected to web audio context destination.
+            size: clubberAnalyzer.fftSize,
+            mute: false,
             context: sound.context,
-            analyser: this.analyser
+            analyser: clubberAnalyzer
         })
-        this.band = this.clubber.band({
-            template: '0123', // alternately [0, 1, 2, 3]
-            from: 1, // minimum midi note to watch
-            to: 32, // maximum midi note, up to 160
-            low: 1, // Low velocity/power threshold
-            high: 128, // High velocity/power threshold
-            smooth: [0.1, 0.1, 0.1, 0.1], // Exponential smoothing factors for the values
-            adapt: [1, 1, 1, 1], // Adaptive bounds setup
-            snap: 0.33
-        })
+        this.bands = []
         this.source = null
+    }
+    addBand(options) {
+        const band = this.clubber.band(options)
+        const buffer = new Float32Array(4)
+        this.bands.push({ band, buffer, options })
+        return band
     }
     addControlsEvents(html) {
         const container = addAnalyzerEvents(this.analyser, html)
@@ -33,10 +43,6 @@ class Visualizer {
     connect(sound) {
         if (!sound instanceof Sound) throw new Error(`Argument must be an instance of Sound.`)
         if (sound instanceof Sound && !sound.source) throw new Error(`No sound source found.`)
-
-        // Specify the audio source to analyse. Can be an audio/video element or an instance of AudioNode.
-        this.clubber.listen(sound.source)
-
         this.connected = false
         if (this.audioGraph.length) {
             let prev = this.audioGraph[0]
@@ -63,16 +69,20 @@ class Visualizer {
         this.analyser.disconnect()
         this.connected = false
     }
-    draw(screen) {
+    draw() {
         this.clubber.update()
-        const buffer = new Float32Array(4)
-        this.band(buffer)
-
-        const test = this.clubber.descriptions.slice(0, 4).reduce(function (accu, curr, index, self) {
-            accu.push({ description: self[index], value: (128 * buffer[index]).toFixed(2) })
-            return accu
-        }, [])
-        console.table(test)
+        for (let bCnt = 0; bCnt < this.bands.length; bCnt++) {
+            const { band, buffer, options } = this.bands[bCnt]
+            let { template } = options
+            if (typeof template === 'string') template = template.split('')
+            const rect = band(buffer)
+            const self = this
+            const result = template.reduce(function (accu, curr, index) {
+                accu.push({ description: self.clubber.descriptions[index], value: buffer[index] })
+                return accu
+            }, [])
+            //console.table(result)
+        }
     }
 }
 
