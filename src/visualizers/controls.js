@@ -43,20 +43,29 @@ export function addAnalyzerEvents(analyser, html) {
     container.classList.add('w3-container')
     container.innerHTML = html
     const minDecibels = container.querySelector('#minDecibels')
+    const minDbValue = container.querySelector('#minDecibels-value')
     const maxDecibels = container.querySelector('#maxDecibels')
+    const maxDbValue = container.querySelector('#maxDecibels-value')
     const smoothingTimeConstant = container.querySelector('#smoothingTimeConstant')
+    const timeValue = container.querySelector('#smoothingTimeConstant-value')
     minDecibels.addEventListener('change', function (event) {
         analyser.minDecibels = event.target.value
+        minDbValue.innerText = `${analyser.minDecibels} dB`
     })
     maxDecibels.addEventListener('change', function (event) {
         analyser.maxDecibels = event.target.value
+        maxDbValue.innerText = `${analyser.maxDecibels} dB`
     })
     smoothingTimeConstant.addEventListener('change', function (event) {
         analyser.smoothingTimeConstant = event.target.value
+        timeValue.innerText = `${analyser.smoothingTimeConstant} ms`
     })
     minDecibels.value = analyser.minDecibels
+    minDbValue.innerText = `${analyser.minDecibels} dB`
     maxDecibels.value = analyser.maxDecibels
+    maxDbValue.innerText = `${analyser.maxDecibels} dB`
     smoothingTimeConstant.value = analyser.smoothingTimeConstant
+    timeValue.innerText = `${analyser.smoothingTimeConstant} ms`
     return container
 }
 
@@ -66,25 +75,35 @@ export function addAnalyzerEvents(analyser, html) {
 const audioGraphEvents = {
     BiquadFilterNode: function (filter, container) {
         const frequency = container.querySelector('#frequency')
+        const freqValue = container.querySelector('#frequency-value')
         const detune = container.querySelector('#detune')
+        const detuneValue = container.querySelector('#detune-value')
         const Q = container.querySelector('#Q')
         const gain = container.querySelector('#gain')
+        const gainValue = container.querySelector('#gain-value')
         frequency.addEventListener('change', function (event) {
             filter.frequency.value = event.target.value
+            freqValue.innerText = `${filter.frequency.value} Hz`
         })
         detune.addEventListener('change', function (event) {
             filter.detune.value = event.target.value
+            detuneValue.innerText = `${filter.detune.value} cent`
         })
         Q.addEventListener('change', function (event) {
             filter.Q.value = event.target.value
+            Q.value = `${filter.Q.value}`
         })
         gain.addEventListener('change', function (event) {
             filter.gain.value = event.target.value
+            gainValue.innerText = `${filter.gain.value} dB`
         })
         frequency.value = filter.frequency.value
+        freqValue.innerText = `${filter.frequency.value} Hz`
         detune.value = filter.detune.value
+        detuneValue.innerText = `${filter.detune.value} cent`
         Q.value = filter.Q.value
         gain.value = filter.gain.value
+        gainValue.innerText = `${filter.gain.value} dB`
     }
 }
 
