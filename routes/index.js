@@ -5,15 +5,22 @@ const fluxfm = require('../src/flux-fm.js')
 router.get('/', async function (req, res) {
     const channels = await fluxfm.channels()
     const { lastChannel } = require('../data.json')
-    console.log(`channels: ${channels.length}`)
     const channel = channels.find(function (ch) {
         return ch.displayName === lastChannel
     })
     console.log(`${channel.displayName}`)
-    res.render('index', {
-        displayName: channel.displayName,
-        stream: channel.streams[0].url
-    })
+    res.render('index', { channel })
+})
+
+router.get('/channels', async function (req, res) {
+    const channels = await fluxfm.channels()
+    res.json(channels)
+})
+
+router.get('/currentTrack', async function (req, res) {
+    const { channelId } = req.query
+    const trackInfo = await fluxfm.currentTrack(channelId)
+    res.json(trackInfo)
 })
 
 const visualizers = {}
@@ -32,4 +39,3 @@ router.get('/controls', function (req, res) {
 })
 
 module.exports = router
-
