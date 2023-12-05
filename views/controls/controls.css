@@ -1,0 +1,11 @@
+.fader {
+    height: 100px;
+}
+
+.fader-title {
+    font-size: x-small;
+}
+
+.fader-value {
+    font-size: x-small;
+}
