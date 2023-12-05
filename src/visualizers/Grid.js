@@ -16,7 +16,7 @@ class Grid extends Visualizer {
         return container
     }
     draw(screen) {
-        super.draw(screen)
+        super.draw()
         // get bytes
         const { analyser, buffer } = this
         analyser.getByteFrequencyData(buffer)

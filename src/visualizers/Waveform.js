@@ -8,7 +8,7 @@ class Waveform extends Visualizer {
         this.lineWidth = lineWidth
     }
     draw(screen) {
-        super.draw(screen)
+        super.draw()
         const { analyser, buffer } = this
         const { context } = screen
         analyser.getByteTimeDomainData(buffer)
