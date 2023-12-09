@@ -1,4 +1,5 @@
 import { Sound } from '../Sound.js'
+import { Screen } from '../Screen.js'
 import { addAnalyzerEvents, addAudioGraphEvents } from './controls.js'
 
 const bandDefaults = {
@@ -13,20 +14,24 @@ const bandDefaults = {
 }
 
 class Visualizer {
-    constructor(sound) {
+    static mapNumRange = function (num, inMin, inMax, outMin, outMax) {
+        return ((num - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin
+    }
+
+    constructor(sound, x, y, width, height) {
         this.analyser = sound.createAnalyser()
         this.audioGraph = []
         this.buffer = new Uint8Array(this.analyser.frequencyBinCount)
         this.connected = false
-        const clubberAnalyzer = sound.createAnalyser()
-        sound.source.connect(clubberAnalyzer)
-        this.clubber = new Clubber({
-            size: clubberAnalyzer.fftSize,
-            mute: false,
-            context: sound.context,
-            analyser: clubberAnalyzer
-        })
+        this.clubber = new Clubber({ size: this.analyser.fftSize })
         this.bands = []
+        this.initalized = false
+        this.lastDraw = 0
+        this.offscreen = new Screen(width, height)
+        // position
+        this.x = x
+        this.y = y
+        //
         this.source = null
     }
     addBand(options) {
@@ -69,20 +74,15 @@ class Visualizer {
         this.analyser.disconnect()
         this.connected = false
     }
-    draw() {
-        this.clubber.update()
-        for (let bCnt = 0; bCnt < this.bands.length; bCnt++) {
-            const { band, buffer, options } = this.bands[bCnt]
-            let { template } = options
-            if (typeof template === 'string') template = template.split('')
-            const rect = band(buffer)
-            const self = this
-            const result = template.reduce(function (accu, curr, index) {
-                accu.push({ description: self.clubber.descriptions[index], value: buffer[index] })
-                return accu
-            }, [])
-            //console.table(result)
-        }
+    draw(screen) {
+        // draw offscreen
+        const { context } = screen
+        context.drawImage(this.offscreen.canvas, this.x, this.y)
+    }
+    update(timestamp) {
+        const { analyser, buffer, clubber } = this
+        analyser.getByteFrequencyData(buffer)
+        clubber.update(timestamp, buffer)
     }
 }
 

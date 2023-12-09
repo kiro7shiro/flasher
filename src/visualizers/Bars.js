@@ -21,14 +21,17 @@ function freqToX(freq, sampleRate) {
 }
 
 class Bars extends Visualizer {
-    constructor(sound, { barsCount = null } = {}) {
-        super(sound)
+    constructor(sound, x, y, width, height, { barsCount = null } = {}) {
+        super(sound, x, y, width, height)
         this.barsCount = barsCount === null ? this.buffer.length : barsCount
         this.barsColors = rainbow(this.barsCount)
     }
     draw(screen) {
-        super.draw()
-        const { analyser, buffer, barsCount } = this
+        super.draw(screen)
+    }
+    update(timestamp) {
+        super.update(timestamp)
+        const { analyser, buffer, barsCount, offscreen } = this
         analyser.getByteFrequencyData(buffer)
         const chunkSize = buffer.length / barsCount
         const average = []
@@ -37,14 +40,15 @@ class Bars extends Visualizer {
             const chunkAvrg = chunk.reduce((sum, num) => sum + num, 0) / chunk.length
             average.push(chunkAvrg)
         }
-        const { context } = screen
-        const barWidth = screen.width / average.length
+        offscreen.clear()
+        const { context } = offscreen
+        const barWidth = offscreen.width / average.length
         let x = 0
         for (let index = 0; index < average.length; index++) {
-            const barHeight = parseInt((average[index] * screen.height) / 255)
+            const barHeight = parseInt((average[index] * offscreen.height) / 255)
             const color = this.barsColors[index]
             context.fillStyle = color.toString()
-            context.fillRect(x, screen.height - barHeight, barWidth, barHeight)
+            context.fillRect(x, offscreen.height - barHeight, barWidth, barHeight)
             x += barWidth
         }
     }

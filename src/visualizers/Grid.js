@@ -3,8 +3,8 @@ import { rainbow } from './Bars.js'
 import { addGridEvents } from './controls.js'
 
 class Grid extends Visualizer {
-    constructor(sound, cols, rows) {
-        super(sound)
+    constructor(sound, x, y, width, height, cols, rows) {
+        super(sound, x, y, width, height)
         this.cols = cols
         this.rows = rows
         this.length = cols * rows
@@ -16,10 +16,12 @@ class Grid extends Visualizer {
         return container
     }
     draw(screen) {
-        super.draw()
+        super.draw(screen)
+    }
+    update(timestamp) {
+        super.update(timestamp)
         // get bytes
-        const { analyser, buffer } = this
-        analyser.getByteFrequencyData(buffer)
+        const { buffer } = this
         const chunkSize = buffer.length / this.length
         const average = []
         for (let index = 0; index < buffer.length; index += chunkSize) {
@@ -27,12 +29,13 @@ class Grid extends Visualizer {
             const chunkAvrg = chunk.reduce((sum, num) => sum + num, 0) / chunk.length
             average.push(chunkAvrg)
         }
+        this.offscreen.clear()
         // draw grid
-        const { context } = screen
-        const weight = .125
+        const { context } = this.offscreen
+        const weight = 0.125
         const weightHalf = weight / 2
-        const availWidth = screen.width - weight
-        const availHeight = screen.height - weight
+        const availWidth = this.offscreen.width - weight
+        const availHeight = this.offscreen.height - weight
         const cellWidth = availWidth / this.cols
         const cellHeight = availHeight / this.rows
         context.save()
