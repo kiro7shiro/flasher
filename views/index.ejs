@@ -1,35 +1,39 @@
-<link rel="stylesheet" href="/views/controls/controls.css">
-<div class="w3-container">
-    <div class="w3-row w3-padding-16">
+<div class="w3-row w3-padding-16">
 
-        <div class="w3-container w3-quarter">
-            <h1>channels</h1>
-            <ul class="w3-ul" id="channels" data-selected-channel="<%= channel.channelId %>">
-                <%- include('partials/channel', { displayName: channel.displayName }) %>
-            </ul>
-        </div>
-
-        <div class="w3-container w3-rest">
-            <h1>player</h1>
-            <div class="w3-container">
-                <h4 id="currentTrack">test</h4>
-            </div>
-            <audio src="<%= channel.streams[0].url %>" controls crossorigin="anonymous" id="player" style="width: 100%;"></audio>
-        </div>
-
+    <div class="w3-container w3-quarter">
+        <h1>channels</h1>
+        <ul class="w3-ul" id="channels" data-selected-channel="<%= channel.channelId %>">
+            <%- include('partials/channel', { displayName: channel.displayName }) %>
+        </ul>
     </div>
+
+    <div class="w3-container w3-rest">
+        <h1>player</h1>
+        <div class="w3-container">
+            <h4 id="currentTrack">test</h4>
+        </div>
+        <audio src="<%= channel.streams[1].url %>" controls crossorigin="anonymous" id="player"
+            style="width: 100%;"></audio>
+    </div>
+
 </div>
 
-<div class="w3-container">
-    <div class="w3-row w3-padding-16">
+<div class="w3-row w3-padding-16">
 
-        <div class="w3-container w3-center" id="visualizer">
-            <h1>visualizer</h1>
+    <div class="w3-container w3-quarter">
+        <h1>controls</h1>
+        <div id="controls" class="w3-bar-block">
+            
         </div>
-
     </div>
+
+    <div id="visualizers" class="w3-container w3-rest">
+        <h1>visualizers</h1>
+    </div>
+
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="ejs/ejs.js"></script>
 <script type="module" src="bin/clubber.js"></script>
 <script type="module" src="src/index.js"></script>

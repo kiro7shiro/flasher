@@ -1,28 +1,26 @@
-<div class="w3-container" id="<%= id %>">
+<div class="w3-container controlsList" id="<%= id %>" style="height: 250px;">
     <div class="w3-container">
         <h4 class="w3-left">
             <%= id %>
         </h4>
         <p class="w3-right"><b>+</b></p>
     </div>
-    
     <div class="w3-row controlsList w3-border-top w3-border-bottom">
-
+        
         <div class="w3-row w3-padding">
-            <div>cols</div>
-            <input class="w3-input" type="number" name="cols" id="cols">
-        </div>
+            <h6>bands</h6>
+            <table>
 
-        <div class="w3-row w3-padding">
-            <div>rows</div>
-            <input class="w3-input" type="number" name="rows" id="rows">
+            </table>
         </div>
-
+        
         <div class="w3-row w3-padding">
             <%- include('AnalyzerNode') %>
         </div>
+        
         <div class="w3-row w3-padding">
             <%- include('AudioGraph') %>
         </div>
+
     </div>
 </div>

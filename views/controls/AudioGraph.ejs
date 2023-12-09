@@ -2,7 +2,7 @@
 <% let prct = 100 / audioGraph.length %>
 <% audioGraph.forEach((node) => { %>
     <% count++ %>
-    <div <% /* eslint-disable css-propertyvalueexpected */ %> class="w3-col w3-padding" style="width: <%= prct %>%;">
+    <div <% /* eslint-disable css-propertyvalueexpected */ %> class="w3-row w3-padding">
         <%- include(node.class, { id: `${node.class}${count}`, type: node.type }) %>
     </div>
 <% }) %>
