@@ -24,10 +24,10 @@ export async function getControls(visualizer) {
     const params = new URLSearchParams()
     params.append('visualizer', visualizerClass)
     params.append('audioGraph', JSON.stringify(audioGraph))
-    // get class controls
+    // get visualizer controls
     const resp = await fetch(`./controls?${params}`)
     const html = await resp.text()
-    // get audio graph controls
+    // add audio graph events
     const controls = visualizer.addControlsEvents(html)
     return controls
 }
@@ -40,7 +40,7 @@ export async function getControls(visualizer) {
  */
 export function addAnalyzerEvents(analyser, html) {
     const container = document.createElement('div')
-    container.classList.add('w3-container')
+    container.classList.add('w3-bar-item')
     container.innerHTML = html
     const minDecibels = container.querySelector('#minDecibels')
     const minDbValue = container.querySelector('#minDecibels-value')
@@ -70,15 +70,24 @@ export function addAnalyzerEvents(analyser, html) {
 }
 
 /**
- * Holds events for each AudioNode from WebAudioApi
+ * Holds events for some AudioNodes from WebAudioApi
  */
 const audioGraphEvents = {
+    DelayNode: function name(delay, container) {
+        const delayValue = container.querySelector('#delay')
+        delayValue.addEventListener('change', function (event) {
+            delay.delayTime.value = event.target.value
+            delayValue.innerText = delay.delayTime.value
+        })
+        delayValue.innerText = delay.delayTime.value
+    },
     BiquadFilterNode: function (filter, container) {
         const frequency = container.querySelector('#frequency')
         const freqValue = container.querySelector('#frequency-value')
         const detune = container.querySelector('#detune')
         const detuneValue = container.querySelector('#detune-value')
         const Q = container.querySelector('#Q')
+        const QValue = container.querySelector('#Q-value')
         const gain = container.querySelector('#gain')
         const gainValue = container.querySelector('#gain-value')
         frequency.addEventListener('change', function (event) {
@@ -91,7 +100,7 @@ const audioGraphEvents = {
         })
         Q.addEventListener('change', function (event) {
             filter.Q.value = event.target.value
-            Q.value = `${filter.Q.value}`
+            QValue.innerText = `${filter.Q.value.toFixed(0)}`
         })
         gain.addEventListener('change', function (event) {
             filter.gain.value = event.target.value
