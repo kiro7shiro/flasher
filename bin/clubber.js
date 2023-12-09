@@ -280,7 +280,7 @@
           
           // fixed timestep
           if (obj.time === undefined) obj.time = scope.time;
-          for (var t = obj.time, step = 1000 / scope.fps, tmax = scope.time ; t < tmax; t += step) {
+          for (var t = obj.time, step = 1000 / scope.fps, tmax = scope.time ; t <= tmax; t += step) {
             config.template.forEach(function (k,i) {
               switch (k) {
                 default: 
