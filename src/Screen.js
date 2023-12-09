@@ -1,3 +1,8 @@
+// TODO : add optimisation for drawing the background
+// TODO : make background transparent
+// TODO : place a second canvas behind this screen
+// TODO : draw background once
+// TODO : clear only the foreground canvas
 class Screen {
     constructor(width, height) {
         this.canvas = document.createElement('canvas')
