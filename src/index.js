@@ -22,7 +22,7 @@ async function main() {
     const highpass = sound.createBiquadFilter('highpass', { frequency: 11000, gain: 40 })
     const lowpass = sound.createBiquadFilter('lowpass', { frequency: 11000, gain: 40 })
 
-    const grid = new Visualizers.Grid(sound, 0, 0, 256, 128, 16, 8)
+    const grid = new Visualizers.Grid(sound, 256, 0, 256, 128, 16, 8)
     grid.audioGraph.push(lowpass)
     grid.audioGraph.push(highpass)
     grid.connect(sound)
@@ -30,7 +30,7 @@ async function main() {
     const wave = new Visualizers.Waveform(sound, 256, 128, 256, 128)
     wave.connect(sound)
 
-    const bars = new Visualizers.Bars(sound, 0, 128, 256, 128)
+    const bars = new Visualizers.Bars(sound, 256, 128, 256, 128)
     bars.connect(sound)
 
     const delay = sound.context.createDelay(1)
@@ -72,7 +72,7 @@ async function main() {
     const fft = new Visualizers.FFT(sound, 256, 0, 256, 128)
     fft.connect(sound)
 
-    const stft = new Visualizers.STFT(sound, 0, 128, 256, 128)
+    const stft = new Visualizers.STFT(sound, 0, 0, 256, 128)
     stft.connect(sound)
 
     const meter = new Visualizers.Meter(sound, 0, 128, 256, 128)
@@ -98,18 +98,20 @@ async function main() {
         screen1.drawBackground(background.toString())
         screen2.clear()
         screen2.drawBackground(background.toString())
-        bars.update(timestamp)
+        /* bars.update(timestamp)
         grid.update(timestamp)
         tool.update(timestamp)
         wave.update(timestamp)
-        fft.update(timestamp)
+        fft.update(timestamp) */
+        stft.update(timestamp)
         meter.update(timestamp)
         //stft.update(timestamp)
-        bars.draw(screen2)
+        /* bars.draw(screen2)
         grid.draw(screen2)
         tool.draw(screen1)
         wave.draw(screen1)
-        fft.draw(screen1)
+        fft.draw(screen1) */
+        stft.draw(screen2) 
         meter.draw(screen1)
         //stft.draw(screen2)
         requestAnimationFrame(draw)

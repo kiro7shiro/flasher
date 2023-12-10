@@ -1,10 +1,50 @@
 import { Visualizer } from './Visualizer.js'
 
 class STFT extends Visualizer {
-    constructor(sound, x, y, width, height) {
+    constructor(sound, x, y, width, height, { timeframe = 6 } = {}) {
         super(sound, x, y, width, height)
-        this.chart = null
-        this.bins = new Array()
+        const { buffer, offscreen } = this
+        this.timeframe = timeframe
+        this.pointer = 0
+        const labels = new Array(timeframe).fill(0).reduce(function (accu, curr, index) {
+            accu.push(index)
+            return accu
+        }, [])
+        const datasets = buffer.reduce(function (accu, curr, index) {
+            accu.push({ data: [] })
+            return accu
+        }, [])
+        this.chart = new Chart(offscreen.canvas, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: datasets
+            },
+            options: {
+                animation: false,
+                scales: {
+                    y: {
+                        min: 0,
+                        max: 256 * buffer.length,
+                        stacked: true
+                    },
+                    x: {
+                        min: 0,
+                        max: timeframe,
+                        stacked: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    decimation: {
+                        enable: true
+                    }
+                },
+                responsive: false
+            }
+        })
         this.analyser.maxDecibels = 0
         this.analyser.smoothingTimeConstant = 0.88
     }
@@ -13,55 +53,16 @@ class STFT extends Visualizer {
     }
     update(timestamp) {
         super.update(timestamp)
-        const { buffer, chart } = this
-        
-        // draw fft chart
-        const { offscreen } = this
-        this.chart = new Chart(offscreen.canvas, {
-            type: 'bar',
-            data: {
-                labels: [],
-                datasets: [
-                    {
-                        type: 'line',
-                        fill: false,
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        yAxisID: 'y-axis-2'
-                    },
-                    {
-                        type: 'bar',
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        yAxisID: 'y-axis-1'
-                    }
-                ]
-            },
-            options: {
-                scales: {
-                    yAxes: [
-                        {
-                            id: 'y-axis-1',
-                            type: 'linear',
-                            position: 'left'
-                        },
-                        {
-                            id: 'y-axis-2',
-                            type: 'linear',
-                            position: 'right',
-                            ticks: {
-                                max: Math.max(...cumulativeSum),
-                                min: Math.min(0, ...cumulativeSum)
-                            }
-                        }
-                    ]
-                }
-            }
-        })
-        chart.data.labels = cumulativeSum.reduce(function (accu, curr, index) {
-            accu.push(index)
+        const { buffer, chart, timeframe } = this
+        // update stft chart
+        const data = buffer.reduce(function (accu, curr) {
+            const diff = 256 - curr
+            accu.push([diff, 256])
             return accu
         }, [])
-        chart.data.datasets[0].data = cumulativeSum
-        chart.data.datasets[1].data = buffer
+        chart.data.datasets[this.pointer].data = data //.slice(0)
+        this.pointer++
+        if (this.pointer === buffer.length) this.pointer = 0
         // NOTE : chart.update() clears the canvas, too.
         chart.update()
     }
