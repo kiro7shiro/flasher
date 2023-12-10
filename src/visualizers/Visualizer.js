@@ -76,11 +76,13 @@ class Visualizer {
     }
     draw(screen) {
         // draw offscreen
+        const  { offscreen } = this
         const { context } = screen
-        context.drawImage(this.offscreen.canvas, this.x, this.y)
+        context.drawImage(offscreen.canvas, this.x, this.y)
     }
     update(timestamp) {
         const { analyser, buffer, clubber } = this
+        // TODO : update the buffer updateting for frequency and timedomain data
         analyser.getByteFrequencyData(buffer)
         clubber.update(timestamp, buffer)
     }

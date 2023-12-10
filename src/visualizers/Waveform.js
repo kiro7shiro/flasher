@@ -6,6 +6,8 @@ class Waveform extends Visualizer {
         super(sound, x, y, width, height)
         this.lineColor = lineColor === null ? new Color('rgb(255, 255, 255)') : lineColor
         this.lineWidth = lineWidth
+        this.analyser.maxDecibels = 0
+        this.analyser.smoothingTimeConstant = 0.77
     }
     draw(screen) {
         super.draw(screen)

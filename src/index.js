@@ -1,10 +1,7 @@
 import { Sound } from './Sound.js'
 import { Screen } from './Screen.js'
 import { getControls } from './visualizers/controls.js'
-import { Waveform } from './visualizers/Waveform.js'
-import { Bars } from './visualizers/Bars.js'
-import { Grid } from './visualizers/Grid.js'
-import { ClubberTool } from './visualizers/ClubberTool.js'
+import { Visualizers } from './visualizers/Visualizers.js'
 import Color from 'https://colorjs.io/dist/color.js'
 
 const channelsList = document.querySelector('#channels')
@@ -25,22 +22,20 @@ async function main() {
     const highpass = sound.createBiquadFilter('highpass', { frequency: 11000, gain: 40 })
     const lowpass = sound.createBiquadFilter('lowpass', { frequency: 11000, gain: 40 })
 
-    const grid = new Grid(sound, 256, 0, 256, 128, 16, 8)
+    const grid = new Visualizers.Grid(sound, 0, 0, 256, 128, 16, 8)
     grid.audioGraph.push(lowpass)
     grid.audioGraph.push(highpass)
     grid.connect(sound)
 
-    const wave = new Waveform(sound, 256, 128, 256, 128)
-    //wave.audioGraph.push(lowpass)
+    const wave = new Visualizers.Waveform(sound, 256, 128, 256, 128)
     wave.connect(sound)
 
-    const bars = new Bars(sound, 0, 128, 256, 128)
-    //bars.audioGraph.push(highpass)
+    const bars = new Visualizers.Bars(sound, 0, 128, 256, 128)
     bars.connect(sound)
 
     const delay = sound.context.createDelay(1)
-    
-    const tool = new ClubberTool(sound, 0, 0, 256, 128)
+
+    const tool = new Visualizers.ClubberTool(sound, 0, 0, 256, 128)
     tool.audioGraph.push(delay)
     tool.addBand({
         template: '0123', // alternately [0, 1, 2, 3]
@@ -74,6 +69,15 @@ async function main() {
     })
     tool.connect(sound)
 
+    const fft = new Visualizers.FFT(sound, 256, 0, 256, 128)
+    fft.connect(sound)
+
+    const stft = new Visualizers.STFT(sound, 0, 128, 256, 128)
+    stft.connect(sound)
+
+    const meter = new Visualizers.Meter(sound, 0, 128, 256, 128)
+    meter.connect(sound)
+
     const toolControls = await getControls(tool)
     controls.append(toolControls)
 
@@ -98,10 +102,16 @@ async function main() {
         grid.update(timestamp)
         tool.update(timestamp)
         wave.update(timestamp)
-        bars.draw(screen1)
-        grid.draw(screen1)
+        fft.update(timestamp)
+        meter.update(timestamp)
+        //stft.update(timestamp)
+        bars.draw(screen2)
+        grid.draw(screen2)
         tool.draw(screen1)
         wave.draw(screen1)
+        fft.draw(screen1)
+        meter.draw(screen1)
+        //stft.draw(screen2)
         requestAnimationFrame(draw)
     }
 
@@ -121,6 +131,8 @@ async function main() {
     player.play()
 
     window.grid = grid
+    window.tool = tool
+    window.stft = stft
 }
 
 // startup

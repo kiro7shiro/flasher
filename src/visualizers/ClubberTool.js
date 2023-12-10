@@ -8,12 +8,8 @@ const chartOffsetY = 20
 class ClubberTool extends Visualizer {
     constructor(sound, x, y, width, height) {
         super(sound, x, y, width, height)
-        this.chart = this.createChart(this.offscreen.canvas)
-        this.analyser.maxDecibels = 0
-        this.analyser.smoothingTimeConstant = 0.88
-    }
-    createChart(canvas) {
-        const chart = new Chart(canvas, {
+        const { offscreen } = this
+        this.chart = new Chart(offscreen.canvas, {
             type: 'line',
             data: {
                 labels: [],
@@ -54,7 +50,8 @@ class ClubberTool extends Visualizer {
                 responsive: false
             }
         })
-        return chart
+        this.analyser.maxDecibels = 0
+        this.analyser.smoothingTimeConstant = 0.33
     }
     draw(screen) {
         super.draw(screen)
