@@ -1,11 +1,43 @@
-import Color from 'https://colorjs.io/dist/color.js'
 import { Visualizer } from './Visualizer.js'
 
 class Waveform extends Visualizer {
-    constructor(sound, x, y, width, height, { lineColor = null, lineWidth = 1 } = {}) {
+    constructor(sound, x, y, width, height) {
         super(sound, x, y, width, height)
-        this.lineColor = lineColor === null ? new Color('rgb(255, 255, 255)') : lineColor
-        this.lineWidth = lineWidth
+        const { offscreen } = this
+        this.chart = new Chart(offscreen.canvas, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'waveform',
+                        display: false,
+                        data: [],
+                        borderWidth: 1,
+                        fill: true,
+                        borderColor: '#e8e6e3',
+                        //backgroundColor: '#4f5559',
+                        tension: 0.25,
+                        pointStyle: false
+                    }
+                ]
+            },
+            options: {
+                animation: false,
+                scales: {
+                    y: {
+                        min: -1,
+                        max: 1
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                responsive: false
+            }
+        })
         this.analyser.maxDecibels = 0
         this.analyser.smoothingTimeConstant = 0.77
     }
@@ -14,27 +46,16 @@ class Waveform extends Visualizer {
     }
     update(timestamp) {
         super.update(timestamp)
-        const { analyser, buffer, offscreen } = this
-        const { context } = offscreen
-        offscreen.clear()
+        const { analyser, buffer, chart } = this
         analyser.getByteTimeDomainData(buffer)
-        let x = 0
-        const slice = offscreen.width / buffer.length
-        context.lineWidth = this.lineWidth
-        context.strokeStyle = this.lineColor.toString()
-        context.beginPath()
-        for (let i = 0; i < buffer.length; i++) {
-            const v = buffer[i] / 128
-            const y = v * (offscreen.height / 2)
-            if (i === 0) {
-                context.moveTo(x, y)
-            } else {
-                context.lineTo(x, y)
-            }
-            x += slice
-        }
-        context.lineTo(offscreen.width, (buffer[buffer.length - 1] / 128) * (offscreen.height / 2))
-        context.stroke()
+        const data = []
+        chart.data.labels = buffer.reduce(function (accu, curr, index) {
+            accu.push(index)
+            data.push(1 - buffer[index] / 128)
+            return accu
+        }, [])
+        chart.data.datasets[0].data = data
+        chart.update()
     }
 }
 
