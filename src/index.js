@@ -27,10 +27,10 @@ async function main() {
     grid.audioGraph.push(highpass)
     grid.connect(sound)
 
-    const wave = new Visualizers.Waveform(sound, 256, 128, 256, 128)
+    const wave = new Visualizers.Waveform(sound, 0, 128, 256, 128)
     wave.connect(sound)
 
-    const bars = new Visualizers.Bars(sound, 256, 128, 256, 128)
+    const bars = new Visualizers.Bars(sound, 256, 0, 256, 128)
     bars.connect(sound)
 
     const delay = sound.context.createDelay(1)
@@ -69,13 +69,13 @@ async function main() {
     })
     tool.connect(sound)
 
-    const fft = new Visualizers.FFT(sound, 256, 0, 256, 128)
+    const fft = new Visualizers.FFT(sound, 0, 0, 256, 128)
     fft.connect(sound)
 
-    const stft = new Visualizers.STFT(sound, 0, 0, 256, 128)
+    const stft = new Visualizers.STFT(sound, 256, 0, 256, 128)
     stft.connect(sound)
 
-    const meter = new Visualizers.Meter(sound, 0, 128, 256, 128)
+    const meter = new Visualizers.Meter(sound, 256, 128, 256, 128)
     meter.connect(sound)
 
     const toolControls = await getControls(tool)
@@ -93,27 +93,27 @@ async function main() {
     const background = new Color('rgb(32, 32, 32)')
     screen1.drawBackground(background.toString())
 
+    const queue = [wave, fft, stft, meter]
+    let lastDraw = 0
     function draw(timestamp) {
         screen1.clear()
         screen1.drawBackground(background.toString())
-        screen2.clear()
-        screen2.drawBackground(background.toString())
-        /* bars.update(timestamp)
-        grid.update(timestamp)
-        tool.update(timestamp)
-        wave.update(timestamp)
-        fft.update(timestamp) */
-        stft.update(timestamp)
-        meter.update(timestamp)
-        //stft.update(timestamp)
-        /* bars.draw(screen2)
-        grid.draw(screen2)
-        tool.draw(screen1)
-        wave.draw(screen1)
-        fft.draw(screen1) */
-        stft.draw(screen2) 
-        meter.draw(screen1)
-        //stft.draw(screen2)
+        /* screen2.clear()
+        screen2.drawBackground(background.toString()) */
+
+        let delta = timestamp - lastDraw
+        while(delta && queue.length) {
+            const vis = queue.shift()
+            vis.update(timestamp)
+            vis.draw(screen1)
+            delta -= 1000 / 60
+        }
+       
+        queue.push(wave)
+        queue.push(fft)
+        queue.push(stft)
+        queue.push(meter)
+        lastDraw = timestamp
         requestAnimationFrame(draw)
     }
 

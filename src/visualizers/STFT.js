@@ -1,17 +1,27 @@
 import { Visualizer } from './Visualizer.js'
 
 class STFT extends Visualizer {
-    constructor(sound, x, y, width, height, { timeframe = 6 } = {}) {
+    constructor(sound, x, y, width, height, { timeframe = 16 } = {}) {
         super(sound, x, y, width, height)
         const { buffer, offscreen } = this
         this.timeframe = timeframe
         this.pointer = 0
-        const labels = new Array(timeframe).fill(0).reduce(function (accu, curr, index) {
+        const labels = buffer.reduce(function (accu, curr, index) {
             accu.push(index)
             return accu
         }, [])
-        const datasets = buffer.reduce(function (accu, curr, index) {
-            accu.push({ data: [] })
+        const datasets = new Array(timeframe).fill(0).reduce(function (accu, curr, index) {
+            //#4f5559
+            //#e8e6e3
+            accu.push({
+                data: new Array(timeframe),
+                backgroundColor: '#e8e6e3',
+                borderColor: '#e8e6e3',
+                borderSkipped: true,
+                borderRadius: 0,
+                borderWidth: 0,
+                categoryPercentage: 1
+            })
             return accu
         }, [])
         this.chart = new Chart(offscreen.canvas, {
@@ -25,12 +35,12 @@ class STFT extends Visualizer {
                 scales: {
                     y: {
                         min: 0,
-                        max: 256 * buffer.length,
+                        max: timeframe * 255,
                         stacked: true
                     },
                     x: {
                         min: 0,
-                        max: timeframe,
+                        max: buffer.length,
                         stacked: true
                     }
                 },
@@ -46,7 +56,7 @@ class STFT extends Visualizer {
             }
         })
         this.analyser.maxDecibels = 0
-        this.analyser.smoothingTimeConstant = 0.88
+        this.analyser.smoothingTimeConstant = 0.33
     }
     draw(screen) {
         super.draw(screen)
@@ -55,16 +65,15 @@ class STFT extends Visualizer {
         super.update(timestamp)
         const { buffer, chart, timeframe } = this
         // update stft chart
-        const data = buffer.reduce(function (accu, curr) {
-            const diff = 256 - curr
-            accu.push([diff, 256])
-            return accu
-        }, [])
-        chart.data.datasets[this.pointer].data = data //.slice(0)
+        /* const temp = []
+        buffer.map(function (val) {
+            temp.push([val/255, 1])
+        }) */
+        chart.data.datasets[this.pointer].data = buffer
         this.pointer++
-        if (this.pointer === buffer.length) this.pointer = 0
+        if (this.pointer === timeframe) this.pointer = 0
         // NOTE : chart.update() clears the canvas, too.
-        chart.update()
+        chart.update('none')
     }
 }
 
