@@ -1,7 +1,7 @@
 import { Visualizer } from './Visualizer.js'
 
 class STFT extends Visualizer {
-    constructor(sound, x, y, width, height, { timeframe = 16 } = {}) {
+    constructor(sound, x, y, width, height, { timeframe = 8 } = {}) {
         super(sound, x, y, width, height)
         const { buffer, offscreen } = this
         this.timeframe = timeframe
@@ -35,13 +35,13 @@ class STFT extends Visualizer {
                 scales: {
                     y: {
                         min: 0,
-                        max: timeframe * 255,
+                        max: timeframe,
                         stacked: true
                     },
                     x: {
                         min: 0,
                         max: buffer.length,
-                        stacked: true
+                        stacked: false
                     }
                 },
                 plugins: {
@@ -65,11 +65,11 @@ class STFT extends Visualizer {
         super.update(timestamp)
         const { buffer, chart, timeframe } = this
         // update stft chart
-        /* const temp = []
+        const data = []
         buffer.map(function (val) {
-            temp.push([val/255, 1])
-        }) */
-        chart.data.datasets[this.pointer].data = buffer
+            data.push([val / 255, 1])
+        })
+        chart.data.datasets[this.pointer].data = data //buffer
         this.pointer++
         if (this.pointer === timeframe) this.pointer = 0
         // NOTE : chart.update() clears the canvas, too.
