@@ -14,7 +14,7 @@ async function main() {
     const sound = new Sound()
     sound.connect(player)
 
-    const screen1 = new Screen(512, 256)
+    const screen1 = new Screen(1024, 256)
     const screen2 = new Screen(512, 256)
     visualizers.append(screen1.canvas)
     visualizers.append(screen2.canvas)
@@ -69,10 +69,10 @@ async function main() {
     })
     tool.connect(sound)
 
-    const fft = new Visualizers.FFT(sound, 0, 0, 256, 128)
+    const fft = new Visualizers.FFT(sound, 512, 0, 512, 256)
     fft.connect(sound)
 
-    const stft = new Visualizers.STFT(sound, 256, 0, 256, 128)
+    const stft = new Visualizers.STFT(sound, 0, 0, 512, 256)
     stft.connect(sound)
 
     const meter = new Visualizers.Meter(sound, 256, 128, 256, 128)
@@ -93,7 +93,7 @@ async function main() {
     const background = new Color('rgb(32, 32, 32)')
     screen1.drawBackground(background.toString())
 
-    const queue = [wave, fft, stft, meter]
+    const queue = [/* wave,*/ fft, stft/* , meter */]
     let lastDraw = 0
     function draw(timestamp) {
         screen1.clear()
@@ -102,17 +102,17 @@ async function main() {
         screen2.drawBackground(background.toString()) */
 
         let delta = timestamp - lastDraw
-        while(delta && queue.length) {
+        while(delta > 0 && queue.length) {
             const vis = queue.shift()
             vis.update(timestamp)
-            vis.draw(screen1)
-            delta -= 1000 / 60
+            const duration = vis.draw(screen1)
+            delta -= duration
         }
        
-        queue.push(wave)
+        //queue.push(wave)
         queue.push(fft)
         queue.push(stft)
-        queue.push(meter)
+        //queue.push(meter)
         lastDraw = timestamp
         requestAnimationFrame(draw)
     }

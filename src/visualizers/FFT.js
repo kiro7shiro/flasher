@@ -46,10 +46,11 @@ class FFT extends Visualizer {
             }
         })
         this.analyser.maxDecibels = 0
-        this.analyser.smoothingTimeConstant = 0.77
+        this.analyser.smoothingTimeConstant = 0.33
     }
     draw(screen) {
-        super.draw(screen)
+        const duration = super.draw(screen)
+        return duration
     }
     update(timestamp) {
         super.update(timestamp)

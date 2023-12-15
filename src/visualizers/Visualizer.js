@@ -21,12 +21,11 @@ class Visualizer {
     constructor(sound, x, y, width, height) {
         this.analyser = sound.createAnalyser()
         this.audioGraph = []
+        this.bands = []
         this.buffer = new Uint8Array(this.analyser.frequencyBinCount)
         this.connected = false
         this.clubber = new Clubber({ size: this.analyser.fftSize })
-        this.bands = []
         this.initalized = false
-        this.lastDraw = 0
         this.offscreen = new Screen(width, height)
         // position
         this.x = x
@@ -59,6 +58,7 @@ class Visualizer {
             }
             const last = this.audioGraph[this.audioGraph.length - 1]
             sound.source.connect(last)
+            this.source = sound.source
             this.connected = true
         } else if (sound instanceof Sound) {
             sound.source.connect(this.analyser)
@@ -78,13 +78,15 @@ class Visualizer {
         // draw offscreen
         const  { offscreen } = this
         const { context } = screen
+        const start = performance.now()
         context.drawImage(offscreen.canvas, this.x, this.y)
+        return performance.now() - start
     }
     update(timestamp) {
         const { analyser, buffer, clubber } = this
         // TODO : update the buffer updateting for frequency and timedomain data
         analyser.getByteFrequencyData(buffer)
-        clubber.update(timestamp, buffer)
+        //clubber.update(timestamp, buffer)
     }
 }
 
