@@ -1,139 +1,108 @@
 import { Visualizer } from './Visualizer.js'
-
-class STFT2 extends Visualizer {
-    constructor(sound, x, y, width, height, { timeframe = 16 } = {}) {
-        super(sound, x, y, width, height)
-        this.analyser = sound.createAnalyser({ fftSize: 128 })
-        this.buffer = new Uint8Array(this.analyser.frequencyBinCount)
-        const { buffer, offscreen } = this
-        this.timeframe = timeframe
-        this.pointer = timeframe - 1
-        this.lastDraw = 0
-        const labels = buffer.reduce(function (accu, curr, index) {
-            accu.push(index)
-            return accu
-        }, [])
-        const datasets = new Array(timeframe).fill(0).reduce(function (accu, curr, index) {
-            //#4f5559
-            //#e8e6e3
-            accu.push({
-                data: new Array(timeframe),
-                backgroundColor: '#e8e6e3',
-                //borderColor: '#e8e6e3',
-                //borderSkipped: true,
-                borderRadius: 0
-                //borderWidth: 0
-                //categoryPercentage: 1
-            })
-            return accu
-        }, [])
-        this.chart = new Chart(offscreen.canvas, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: datasets
-            },
-            options: {
-                animation: false,
-                scales: {
-                    /* indexAxis: 'y', */
-                    y: {
-                        min: 0,
-                        max: timeframe,
-                        stacked: true,
-                        reverse: false
-                    },
-                    x: {
-                        min: 0,
-                        max: buffer.length,
-                        stacked: false
-                    }
-                },
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    decimation: {
-                        enable: true
-                        //samples: timeframe / 2,
-                        //threshold: 0.5
-                        //algorithm: 'lttb'
-                    }
-                },
-                responsive: false
-            }
-        })
-        this.analyser.maxDecibels = -30
-        this.analyser.smoothingTimeConstant = 0.33
-    }
-    draw(screen) {
-        super.draw(screen)
-    }
-    update(timestamp) {
-        super.update(timestamp)
-        const { buffer, chart, timeframe } = this
-        // update stft chart
-        const data = []
-        buffer.forEach((val) => data.push([val / 255, 1]))
-        chart.data.datasets[this.pointer].data = data
-        this.pointer--
-        if (this.pointer < 0) this.pointer = timeframe - 1
-        const now = performance.now()
-        const delta = now - this.lastDraw
-        if (delta >= 1000 / 25) {
-            // NOTE : chart.update() clears the canvas, too.
-            chart.update('none')
-            this.lastDraw = now
-        }
-    }
-}
+import { Screen } from '../Screen.js'
 
 class STFT extends Visualizer {
-    constructor(sound, x, y, width, height, { timeframe = 256 } = {}) {
-        super(sound, x, y, width, height)
-        this.analyser = sound.createAnalyser({ fftSize: 1024 })
-        this.buffer = new Uint8Array(this.analyser.frequencyBinCount)
-        this.analyser.maxDecibels = 0
-        this.analyser.smoothingTimeConstant = 0.33
-        const { buffer, offscreen } = this
-        this.width = width
-        this.height = height
-        this.cellsWidth = width / buffer.length
-        this.cellsHeight = height / timeframe
-        offscreen.width = width
-        offscreen.height = height
+    constructor(sound, width, height, left, top, { timeframe = 250 } = {}) {
+        super(sound, width, height, left, top)
+        const { analyser, buffer, offscreen } = this
+        analyser.maxDecibels = -20
+        analyser.smoothingTimeConstant = 0.33
+        //
         this.frameCount = 0
+        this.firstFrame = 0
+        this.secondFrame = 1
         this.timeframe = timeframe
-        const pixels = (this.pixels = offscreen.context.getImageData(0, 0, width, 1))
+        this.scaleOffsetX = 37
+        this.scaleOffsetY = 40
+        //
+        offscreen.width = offscreen.width - this.scaleOffsetX
+        offscreen.height = offscreen.height - this.scaleOffsetY
+        this.cellsWidth = Math.round(offscreen.width / buffer.length)
+        this.cellsHeight = offscreen.height / timeframe
+        //
+        this.frame1 = new Screen(offscreen.width, offscreen.height)
+        this.frame2 = new Screen(offscreen.width, offscreen.height)
+        this.frames = [this.frame1, this.frame2]
+        //
+        const pixels = (this.pixels = this.offscreen.context.createImageData(offscreen.width, 1))
         for (let pCnt = 0; pCnt < pixels.data.length; pCnt += 4) {
             pixels.data[pCnt] = 255
             pixels.data[pCnt + 1] = 255
             pixels.data[pCnt + 2] = 255
             pixels.data[pCnt + 3] = 0
         }
+        //
+        this.scaleCanvas = document.createElement('canvas')
+        this.scaleCanvas.width = width
+        this.scaleCanvas.height = height
+        this.scaleChart = new Chart(this.scaleCanvas, {
+            type: 'bar',
+            data: {
+                labels: buffer.reduce(function (accu, curr, index) {
+                    accu.push(index)
+                    return accu
+                }, [])
+            },
+            options: {
+                animation: false,
+                scales: {
+                    y: {
+                        min: 1,
+                        max: timeframe,
+                        reverse: true,
+                        grid: {
+                            display: true
+                        }
+                    },
+                    x: {
+                        min: 1,
+                        max: buffer.length,
+                        grid: {
+                            display: true
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                responsive: false
+            }
+        })
     }
-    draw(screen) {
-        // draw pixels to screen
-        const { cellsHeight, frameCount, timeframe, offscreen, pixels } = this
-        const y = frameCount * cellsHeight
+    draw(timestamp) {
+        const { cellsHeight, firstFrame, secondFrame, frames, offscreen, pixels, scaleOffsetX, timeframe } = this
+        const frame = frames[secondFrame]
+        const y = this.frameCount * cellsHeight
         for (let hCnt = 0; hCnt < cellsHeight; hCnt++) {
-            offscreen.context.putImageData(pixels, 0, y + hCnt)   
+            frame.context.putImageData(pixels, 0, y + hCnt)
         }
         this.frameCount++
-        if (frameCount > timeframe) this.frameCount = 0
-        const duration = super.draw(screen)
-        return duration
+        if (this.frameCount > timeframe) {
+            this.frameCount = 0
+            this.firstFrame = secondFrame
+            this.secondFrame = firstFrame
+        }
+        const { scaleCanvas, screen } = this
+        offscreen.clear()
+        offscreen.context.drawImage(frames[firstFrame].canvas, 0, -y)
+        offscreen.context.drawImage(frames[secondFrame].canvas, 0, offscreen.height - y)
+        screen.clear()
+        screen.context.drawImage(scaleCanvas, 0, 0)
+        screen.context.drawImage(offscreen.canvas, scaleOffsetX, 0)
+        return performance.now() - timestamp
     }
     update(timestamp) {
-        super.update(timestamp)
-        const { buffer, cellsWidth, pixels } = this
+        const { analyser, buffer, cellsWidth, pixels } = this
+        analyser.getByteFrequencyData(buffer)
         // set pixels to buffer value
-        // fill the first row of pixels
         let bCnt = 0
-        for (let x = 0; x < pixels.data.length; x+=4) {
+        for (let x = 0; x < pixels.data.length; x += 4) {
             pixels.data[x + 3] = buffer[bCnt]
             if (x % (cellsWidth * bCnt + 1) === 0) bCnt++
         }
+        return performance.now() - timestamp
     }
 }
 
