@@ -1,10 +1,7 @@
 <div class="w3-row w3-padding-16">
 
     <div class="w3-container w3-quarter">
-        <h1>channels</h1>
-        <ul class="w3-ul" id="channels" data-selected-channel="<%= channel.channelId %>">
-            <%- include('partials/channel', { displayName: channel.displayName }) %>
-        </ul>
+        <%- include('controls/channels', { lastChannel, channels }) %>
     </div>
 
     <div class="w3-container w3-rest">
@@ -12,7 +9,7 @@
         <div class="w3-container">
             <h4 id="currentTrack">test</h4>
         </div>
-        <audio src="<%= channel.streams[1].url %>" controls crossorigin="anonymous" id="player"
+        <audio src="<%= lastChannel.streams[1].url %>" controls crossorigin="anonymous" id="player"
             style="width: 100%;"></audio>
     </div>
 
@@ -23,12 +20,15 @@
     <div class="w3-container w3-quarter">
         <h1>controls</h1>
         <div id="controls" class="w3-bar-block">
-            
+
         </div>
     </div>
 
-    <div id="visualizers" class="w3-container w3-rest">
-        <h1>visualizers</h1>
+    <div class="w3-container w3-rest">
+        <h1>workspace</h1>
+        <div id="workspace" style="position: relative;height: 100vh;">
+
+        </div>
     </div>
 
 </div>

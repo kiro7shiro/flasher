@@ -9,7 +9,7 @@ router.get('/', async function (req, res) {
         return ch.displayName === lastChannel
     })
     console.log(`${channel.displayName}`)
-    res.render('index', { channel })
+    res.render('index', { lastChannel: channel, channels })
 })
 
 router.get('/channels', async function (req, res) {

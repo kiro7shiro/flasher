@@ -1,3 +1,17 @@
+.screen {
+    position: absolute;
+    cursor: move;
+}
+
+.channelsList {
+    height: 160px;
+    overflow: scroll;
+}
+
+.selectedChannel {
+    background-color: #00b6f0;
+}
+
 .controlsList {
     height: 20vh;
     overflow: scroll;
