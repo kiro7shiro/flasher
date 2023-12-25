@@ -1,20 +1,20 @@
 class Screen {
     constructor(width, height, left = 0, top = 0) {
+        // container
         this.container = document.createElement('div')
         this.container.classList.add('screen')
-
+        // canvas and background
         this.canvas = document.createElement('canvas')
         this.background = document.createElement('canvas')
         this.canvas.style.position = 'absolute'
         this.canvas.style.zIndex = 2
         this.background.style.position = 'absolute'
         this.background.style.zIndex = 1
-
+        // context
         this.context = this.canvas.getContext('2d')
         this.backgroundContext = this.background.getContext('2d')
-
+        // append elements to container
         this.container.append(this.canvas, this.background)
-
         // size and position
         this.width = width
         this.height = height
@@ -82,15 +82,11 @@ class Screen {
     }
     onMouseMove(event) {
         if (this.isDragging) {
-            // Calculate new div position based on mouse position and offset
             let newX = event.clientX - this.offsetX
-            let newY = event.clientY - this.offsetYw
-            // Get the dimensions of the parent container
+            let newY = event.clientY - this.offsetY
             const parentRect = this.container.parentElement.getBoundingClientRect()
-            // Perform boundary checks
             newX = Math.max(0, Math.min(parentRect.width - this.container.offsetWidth, newX))
             newY = Math.max(0, Math.min(parentRect.height - this.container.offsetHeight, newY))
-            // Update div position
             this.left = newX
             this.top = newY
         }
