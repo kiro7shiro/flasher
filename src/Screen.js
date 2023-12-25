@@ -4,12 +4,20 @@
 // TODO : draw background once
 // TODO : clear only the foreground canvas
 class Screen {
-    constructor(width, height) {
+    constructor(width, height, left = 0, top = 0) {
         this.canvas = document.createElement('canvas')
-        const { canvas } = this
-        canvas.width = width
-        canvas.height = height
-        this.context = canvas.getContext('2d')
+        this.canvas.classList.add('screen')
+        this.context = this.canvas.getContext('2d')
+        this.width = width
+        this.height = height
+        this.left = left
+        this.top = top
+        // dragging
+        this.isDragging = false
+        this.offsetX = 0
+        this.offsetY = 0
+        this.canvas.addEventListener('mousedown', this.onMouseDown.bind(this))
+        this.canvas.addEventListener('mouseleave', this.onMouseLeave.bind(this))
     }
     get width() {
         return this.canvas.width
@@ -24,15 +32,21 @@ class Screen {
         this.canvas.height = value
     }
     get top() {
-        return this.canvas.style.top
+        const top = this.canvas.style.top
+        const stripped = top.slice(0, top.length - 2)
+        return parseInt(stripped)
     }
     set top(value) {
+        if (typeof value !== 'string' || !value.endsWith('px')) value = value + 'px'
         this.canvas.style.top = value
     }
     get left() {
-        return this.canvas.style.left
+        const left = this.canvas.style.left
+        const stripped = left.slice(0, left.length - 2)
+        return parseInt(stripped)
     }
     set left(value) {
+        if (typeof value !== 'string' || !value.endsWith('px')) value = value + 'px'
         this.canvas.style.left = value
     }
     clear() {
@@ -49,6 +63,27 @@ class Screen {
         const { context, width, height } = this
         context.fillStyle = color
         context.fillRect(0, 0, width, height)
+    }
+    onMouseDown(event) {
+        this.isDragging = true
+        this.offsetX = event.clientX - parseInt(this.left)
+        this.offsetY = event.clientY - parseInt(this.top)
+        this.canvas.addEventListener('mousemove', this.onMouseMove.bind(this))
+        this.canvas.addEventListener('mouseup', this.onMouseUp.bind(this))
+    }
+    onMouseLeave() {
+        if (this.isDragging) this.isDragging = false
+    }
+    onMouseMove(event) {
+        if (this.isDragging) {
+            this.left = event.clientX - this.offsetX
+            this.top = event.clientY - this.offsetY
+        }
+    }
+    onMouseUp() {
+        this.isDragging = false
+        this.canvas.removeEventListener('mousemove', this.onMouseMove)
+        this.canvas.removeEventListener('mouseup', this.onMouseUp)
     }
 }
 
