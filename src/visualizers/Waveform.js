@@ -1,8 +1,8 @@
 import { Visualizer } from './Visualizer.js'
 
 class Waveform extends Visualizer {
-    constructor(sound, x, y, width, height) {
-        super(sound, x, y, width, height)
+    constructor(sound, x, y, width, height, { fftSize = 256, smoothingTimeConstant = 0.5 } = {}) {
+        super(sound, x, y, width, height, { fftSize, smoothingTimeConstant })
         const { offscreen } = this
         this.chart = new Chart(offscreen.canvas, {
             type: 'line',
@@ -33,6 +33,10 @@ class Waveform extends Visualizer {
                 plugins: {
                     legend: {
                         display: false
+                    },
+                    decimation: {
+                        enabled: true,
+                        threshold: offscreen.width / 2
                     }
                 },
                 responsive: false
@@ -41,11 +45,13 @@ class Waveform extends Visualizer {
         this.analyser.maxDecibels = 0
         this.analyser.smoothingTimeConstant = 0.77
     }
-    draw(screen) {
-        super.draw(screen)
+    draw(timestamp) {
+        const { screen, offscreen } = this
+        screen.clear()
+        screen.context.drawImage(offscreen.canvas, 0, 0)
+        return performance.now() - timestamp
     }
     update(timestamp) {
-        super.update(timestamp)
         const { analyser, buffer, chart } = this
         analyser.getByteTimeDomainData(buffer)
         const data = []
@@ -56,6 +62,8 @@ class Waveform extends Visualizer {
         }, [])
         chart.data.datasets[0].data = data
         chart.update()
+        // NOTE : chart.update() clears the canvas, too.
+        return performance.now() - timestamp
     }
 }
 

@@ -2,12 +2,13 @@ import { Visualizer } from './Visualizer.js'
 import { Screen } from '../Screen.js'
 
 class STFT extends Visualizer {
-    constructor(sound, width, height, left, top, { timeframe = 250 } = {}) {
-        super(sound, width, height, left, top)
+    constructor(sound, width, height, left, top, { fftSize = 256, smoothingTimeConstant = 0.5, timeframe = 250 } = {}) {
+        super(sound, width, height, left, top, { fftSize, smoothingTimeConstant })
         const { analyser, buffer, offscreen } = this
         analyser.maxDecibels = -20
         analyser.smoothingTimeConstant = 0.33
         //
+        this.lastDraw = 0
         this.frameCount = 0
         this.firstFrame = 0
         this.secondFrame = 1
@@ -35,6 +36,9 @@ class STFT extends Visualizer {
         this.scaleCanvas = document.createElement('canvas')
         this.scaleCanvas.width = width
         this.scaleCanvas.height = height
+        this.scaleCanvas.style.position = 'absolute'
+        this.scaleCanvas.style.zIndex = 3
+        this.screen.container.append(this.scaleCanvas)
         this.scaleChart = new Chart(this.scaleCanvas, {
             type: 'bar',
             data: {
@@ -49,7 +53,7 @@ class STFT extends Visualizer {
                     y: {
                         min: 1,
                         max: timeframe,
-                        reverse: true,
+                        reverse: false,
                         grid: {
                             display: true
                         }
@@ -72,9 +76,10 @@ class STFT extends Visualizer {
         })
     }
     draw(timestamp) {
-        const { cellsHeight, firstFrame, secondFrame, frames, offscreen, pixels, scaleOffsetX, timeframe } = this
+        const delta = timestamp - this.lastDraw
+        const { cellsHeight, firstFrame, secondFrame, frames, pixels, timeframe } = this
         const frame = frames[secondFrame]
-        const y = this.frameCount * cellsHeight
+        const y = this.frameCount * cellsHeight - delta / 60
         for (let hCnt = 0; hCnt < cellsHeight; hCnt++) {
             frame.context.putImageData(pixels, 0, y + hCnt)
         }
@@ -84,14 +89,14 @@ class STFT extends Visualizer {
             this.firstFrame = secondFrame
             this.secondFrame = firstFrame
         }
-        const { scaleCanvas, screen } = this
+        const { offscreen, scaleOffsetX, screen } = this
         offscreen.clear()
         offscreen.context.drawImage(frames[firstFrame].canvas, 0, -y)
         offscreen.context.drawImage(frames[secondFrame].canvas, 0, offscreen.height - y)
         screen.clear()
-        screen.context.drawImage(scaleCanvas, 0, 0)
         screen.context.drawImage(offscreen.canvas, scaleOffsetX, 0)
-        return performance.now() - timestamp
+        this.lastDraw = performance.now()
+        return this.lastDraw - timestamp
     }
     update(timestamp) {
         const { analyser, buffer, cellsWidth, pixels } = this

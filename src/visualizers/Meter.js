@@ -1,8 +1,8 @@
 import { Visualizer } from './Visualizer.js'
 
 class Meter extends Visualizer {
-    constructor(sound, x, y, width, height) {
-        super(sound, x, y, width, height)
+    constructor(sound, width, height, left, top, { fftSize = 256, smoothingTimeConstant = 0.5 } = {}) {
+        super(sound, width, height, left, top, { fftSize, smoothingTimeConstant })
         const { offscreen } = this
         this.chart = new Chart(offscreen.canvas, {
             type: 'bar',
@@ -13,10 +13,10 @@ class Meter extends Visualizer {
                         label: 'volume',
                         display: false,
                         data: [],
-                        borderWidth: 1,
+                        //borderWidth: 1,
                         fill: true,
-                        borderColor: '#e8e6e3'
-                        //backgroundColor: '#4f5559',
+                        borderColor: '#e8e6e3',
+                        backgroundColor: '#e8e6e3',
                     }
                 ]
             },
@@ -33,6 +33,10 @@ class Meter extends Visualizer {
                 plugins: {
                     legend: {
                         display: false
+                    },
+                    decimation: {
+                        enabled: true,
+                        threshold: offscreen.width / 2
                     }
                 },
                 responsive: false
@@ -41,13 +45,16 @@ class Meter extends Visualizer {
         this.analyser.maxDecibels = 0
         this.analyser.smoothingTimeConstant = 0.33
     }
-    draw(screen) {
-        super.draw(screen)
+    draw(timestamp) {
+        const { screen, offscreen } = this
+        screen.clear()
+        screen.context.drawImage(offscreen.canvas, 0, 0)
+        return performance.now() - timestamp
     }
     update(timestamp) {
-        super.update(timestamp)
         // draw volume chart
-        const { buffer, chart } = this
+        const { analyser, buffer, chart } = this
+        analyser.getByteFrequencyData(buffer)
         chart.data.labels = ['abs', 'rel']
         let sum = 0
         for (const amplitude of buffer) {
@@ -64,6 +71,7 @@ class Meter extends Visualizer {
         ]
         // NOTE : chart.update() clears the canvas, too.
         chart.update()
+        return performance.now() - timestamp
     }
 }
 

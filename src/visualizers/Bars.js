@@ -30,7 +30,6 @@ class Bars extends Visualizer {
         super.draw(screen)
     }
     update(timestamp) {
-        super.update(timestamp)
         const { analyser, buffer, barsCount, offscreen } = this
         analyser.getByteFrequencyData(buffer)
         const chunkSize = buffer.length / barsCount

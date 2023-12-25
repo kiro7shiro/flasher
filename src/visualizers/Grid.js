@@ -19,9 +19,9 @@ class Grid extends Visualizer {
         super.draw(screen)
     }
     update(timestamp) {
-        super.update(timestamp)
         // get bytes
-        const { buffer } = this
+        const { analyser, buffer } = this
+        analyser.getByteFrequencyData(buffer)
         const chunkSize = buffer.length / this.length
         const average = []
         for (let index = 0; index < buffer.length; index += chunkSize) {

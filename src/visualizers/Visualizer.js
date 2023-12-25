@@ -18,8 +18,8 @@ class Visualizer {
         return ((num - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin
     }
 
-    constructor(sound, x, y, width, height) {
-        this.analyser = sound.createAnalyser()
+    constructor(sound, width, height, left, top, { fftSize = 256, smoothingTimeConstant = 0.5 } = {}) {
+        this.analyser = sound.createAnalyser({ fftSize, smoothingTimeConstant })
         this.audioGraph = []
         this.bands = []
         this.buffer = new Uint8Array(this.analyser.frequencyBinCount)
@@ -27,10 +27,7 @@ class Visualizer {
         this.clubber = new Clubber({ size: this.analyser.fftSize })
         this.initalized = false
         this.offscreen = new Screen(width, height)
-        // position
-        this.x = x
-        this.y = y
-        //
+        this.screen = new Screen(width, height, left, top)
         this.source = null
     }
     addBand(options) {
@@ -74,19 +71,11 @@ class Visualizer {
         this.analyser.disconnect()
         this.connected = false
     }
-    draw(screen) {
-        // draw offscreen
-        const  { offscreen } = this
-        const { context } = screen
-        const start = performance.now()
-        context.drawImage(offscreen.canvas, this.x, this.y)
-        return performance.now() - start
+    draw() {
+        // your code goes here
     }
-    update(timestamp) {
-        const { analyser, buffer, clubber } = this
-        // TODO : update the buffer updateting for frequency and timedomain data
-        analyser.getByteFrequencyData(buffer)
-        //clubber.update(timestamp, buffer)
+    update() {
+        // your code goes here
     }
 }
 
