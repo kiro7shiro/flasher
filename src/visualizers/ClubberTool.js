@@ -57,6 +57,9 @@ class ClubberTool extends Visualizer {
         super.draw(screen)
     }
     update(timestamp) {
+
+        // FIX: update the buffer 
+
         super.update(timestamp)
         // draw note chart
         const { chart } = this
