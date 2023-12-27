@@ -1,3 +1,7 @@
+/**
+ * The Screen class provides confience functions for interacting with the canvas
+ * and proivdes html controls for interaction
+ */
 class Screen {
     constructor(width, height, left = 0, top = 0) {
         // container
@@ -10,11 +14,20 @@ class Screen {
         this.canvas.style.zIndex = 2
         this.background.style.position = 'absolute'
         this.background.style.zIndex = 1
+        // debugging window
+        this.debugWindow = document.createElement('div')
+        this.debugWindow.style.position = 'absolute'
+        this.debugWindow.style.zIndex = 3
+        this.debugWindow.style.display = 'none'
+        this.debugWindow.style.height = height + 'px'
+        this.debugWindow.style.width = width / 4 + 'px'
+        this.debugWindow.style.left = width - width / 4 + 'px'
+        this.debugWindow.style.backgroundColor = '#272727'
         // context
         this.context = this.canvas.getContext('2d')
         this.backgroundContext = this.background.getContext('2d')
         // append elements to container
-        this.container.append(this.canvas, this.background)
+        this.container.append(this.debugWindow, this.canvas, this.background)
         // size and position
         this.width = width
         this.height = height
@@ -64,6 +77,11 @@ class Screen {
     clear() {
         const { context, width, height } = this
         context.clearRect(0, 0, width, height)
+    }
+    debug(html) {
+        const { debugWindow } = this
+        debugWindow.innerHTML = html
+        if (debugWindow.style.display === 'none') debugWindow.style.display = 'block'
     }
     drawBackground(color) {
         const { backgroundContext, width, height } = this
