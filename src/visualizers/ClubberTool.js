@@ -1,6 +1,17 @@
 import { Visualizer } from './Visualizer.js'
 import Color from 'https://colorjs.io/dist/color.js'
 
+const bandDefaults = {
+    template: '0123', // alternately [0, 1, 2, 3]
+    from: 1, // minimum midi note to watch
+    to: 160, // maximum midi note, up to 160
+    low: 1, // Low velocity/power threshold
+    high: 128, // High velocity/power threshold
+    smooth: [0.1, 0.1, 0.1, 0.1], // Exponential smoothing factors for the values
+    adapt: [1, 1, 1, 1], // Adaptive bounds setup
+    snap: 0.33
+}
+
 const rectColor = new Color('rgb(64, 64, 64)')
 const chartOffsetX = 36
 const chartOffsetY = 20
