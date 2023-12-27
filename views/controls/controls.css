@@ -8,6 +8,10 @@
     overflow: scroll;
 }
 
+.channelButton {
+    background-color: #1b1b1b;
+}
+
 .selectedChannel {
     background-color: #00b6f0;
 }
@@ -27,4 +31,8 @@
 
 .fader-value {
     font-size: x-small;
+}
+
+.player {
+    width: 100%;
 }

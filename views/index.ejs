@@ -1,39 +1,41 @@
-<div class="w3-row w3-padding-16">
+<body class="w3-container w3-dark-grey">
+    <div class="w3-row w3-padding-16">
 
-    <div class="w3-container w3-quarter">
-        <%- include('controls/channels', { lastChannel, channels }) %>
-    </div>
-
-    <div class="w3-container w3-rest">
-        <h1>player</h1>
-        <div class="w3-container">
-            <h4 id="currentTrack">test</h4>
+        <div class="w3-container w3-quarter">
+            <%- include('controls/channels', { lastChannel, channels }) %>
         </div>
-        <audio src="<%= lastChannel.streams[1].url %>" controls crossorigin="anonymous" id="player"
-            style="width: 100%;"></audio>
-    </div>
 
-</div>
-
-<div class="w3-row w3-padding-16">
-
-    <div class="w3-container w3-quarter">
-        <h1>controls</h1>
-        <div id="controls" class="w3-bar-block">
-
+        <div class="w3-container w3-rest">
+            <h1>player</h1>
+            <div class="w3-container">
+                <h4 id="currentTrack">test</h4>
+            </div>
+            <audio class="player" id="player" src="<%= lastChannel.streams[1].url %>" controls
+                crossorigin="anonymous"></audio>
         </div>
+
     </div>
 
-    <div class="w3-container w3-rest">
-        <h1>workspace</h1>
-        <div id="workspace" style="position: relative;height: 100vh;">
+    <div class="w3-row w3-padding-16">
 
+        <div class="w3-container w3-quarter">
+            <h1>controls</h1>
+            <div id="controls" class="w3-bar-block">
+
+            </div>
         </div>
+
+        <div class="w3-container w3-rest">
+            <h1>workspace</h1>
+            <div id="workspace" style="position: relative;height: 100vh;">
+
+            </div>
+        </div>
+
     </div>
 
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="ejs/ejs.js"></script>
-<script type="module" src="bin/clubber.js"></script>
-<script type="module" src="src/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="ejs/ejs.js"></script>
+    <script type="module" src="bin/clubber.js"></script>
+    <script type="module" src="src/index.js"></script>
+</body>
