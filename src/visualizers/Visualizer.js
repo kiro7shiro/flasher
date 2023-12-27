@@ -2,17 +2,6 @@ import { Sound } from '../Sound.js'
 import { Screen } from '../Screen.js'
 import { addAnalyzerEvents, addAudioGraphEvents } from './controls.js'
 
-const bandDefaults = {
-    template: '0123', // alternately [0, 1, 2, 3]
-    from: 1, // minimum midi note to watch
-    to: 160, // maximum midi note, up to 160
-    low: 1, // Low velocity/power threshold
-    high: 128, // High velocity/power threshold
-    smooth: [0.1, 0.1, 0.1, 0.1], // Exponential smoothing factors for the values
-    adapt: [1, 1, 1, 1], // Adaptive bounds setup
-    snap: 0.33
-}
-
 class Visualizer {
     static mapNumRange = function (num, inMin, inMax, outMin, outMax) {
         return ((num - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin
@@ -21,20 +10,15 @@ class Visualizer {
     constructor(sound, width, height, left, top, { fftSize = 256, smoothingTimeConstant = 0.5 } = {}) {
         this.analyser = sound.createAnalyser({ fftSize, smoothingTimeConstant })
         this.audioGraph = []
-        this.bands = []
         this.buffer = new Uint8Array(this.analyser.frequencyBinCount)
         this.connected = false
-        this.clubber = new Clubber({ size: this.analyser.fftSize })
+        this.delta = 0
+        this.handle = 0
         this.initalized = false
+        this.lastDraw = 0
         this.offscreen = new Screen(width, height)
         this.screen = new Screen(width, height, left, top)
         this.source = null
-    }
-    addBand(options) {
-        const band = this.clubber.band(options)
-        const buffer = new Float32Array(4)
-        this.bands.push({ band, buffer, options })
-        return band
     }
     addControlsEvents(html) {
         const container = addAnalyzerEvents(this.analyser, html)
@@ -73,8 +57,11 @@ class Visualizer {
     }
     draw() {
         // your code goes here
+        //if (this.handle) cancelAnimationFrame(this.handle)
+        this.handle = requestAnimationFrame(this.draw.bind(this))
+        return this.handle
     }
-    update() {
+    update(timestamp) {
         // your code goes here
     }
 }

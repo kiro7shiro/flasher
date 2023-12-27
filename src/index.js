@@ -7,7 +7,6 @@
 // 80   * 45
 
 import { Sound } from './Sound.js'
-import { Screen } from './Screen.js'
 import { getControls } from './visualizers/controls.js'
 import { Visualizers } from './visualizers/Visualizers.js'
 import Color from 'https://colorjs.io/dist/color.js'
@@ -17,25 +16,49 @@ const currentTrack = document.querySelector('#currentTrack')
 const player = document.querySelector('#player')
 const workspace = document.querySelector('#workspace')
 
+const sound = new Sound()
+sound.connect(player)
+
+// channels
 channelsList.channels = JSON.parse(channelsList.dataset.channels)
 channelsList.addEventListener('click', function (event) {
-    console.log(event.target.innerText)
     const [selectedChannel] = channelsList.channels.filter(function (ch) {
         return ch.displayName === event.target.innerText
     })
-    console.log(selectedChannel)
+    async function save() {
+        // nasty hack because of json.parse unable to parse '&' character
+        selectedChannel.summary = selectedChannel.summary.replace('&', '')
+        const resp = await fetch(`./selectedChannel?channel=${JSON.stringify(selectedChannel)}`, { method: 'POST' })
+    }
+    save()
     player.pause()
     player.src = selectedChannel.streams[1].url
     channelsList.dataset.selectedChannel = selectedChannel.channelId
     player.load()
     player.play()
+    const selectedChannelButton = channelsList.querySelector('.selectedChannel')
+    selectedChannelButton.classList.remove('selectedChannel')
+    event.target.classList.add('selectedChannel')
+})
+const selectedChannelButton = channelsList.querySelector('.selectedChannel')
+selectedChannelButton.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' })
+
+// player
+let requesting = false
+let lastRequest = 0
+player.addEventListener('timeupdate', async function (event) {
+    if (event.timeStamp >= lastRequest + 2000 && !requesting) {
+        requesting = true
+        const resp = await fetch(`./currentTrack?channelId=${channelsList.dataset.selectedChannel}`)
+        const trackInfo = await resp.json()
+        currentTrack.innerText = `${trackInfo.title} - ${trackInfo.artistCredits}`
+        lastRequest = event.timeStamp
+        requesting = false
+    }
 })
 
 async function main() {
-    const sound = new Sound()
-    sound.connect(player)
-
-    const background = new Color('#1b1b1b')
+    const background = new Color('#272727')
 
     const fft = new Visualizers.FFT(sound, 256, 128, 0, 0)
     fft.connect(sound)
@@ -47,49 +70,28 @@ async function main() {
     stft.screen.drawBackground(background.toString())
     workspace.append(stft.screen.container)
 
-    window.stft = stft
-
-    const meter = new Visualizers.Meter(sound, 256, 128, 256, 0)
+    const meter = new Visualizers.Meter(sound, 256, 128, 512, 0)
     meter.connect(sound)
     meter.screen.drawBackground(background.toString())
     workspace.append(meter.screen.container)
 
-    const wave = new Visualizers.Waveform(sound, 256, 128, 512, 0)
+    const wave = new Visualizers.Waveform(sound, 256, 128, 256, 0, { fftSize: 64 })
     wave.connect(sound)
     wave.screen.drawBackground(background.toString())
     workspace.append(wave.screen.container)
 
-    const queue = [stft, meter, wave, fft]
-    let lastDraw = 0
-    function draw(timestamp) {
-        let delta = timestamp - lastDraw
-        while (delta > 0 && queue.length) {
-            const visualizer = queue.shift()
-            let duration = visualizer.update(timestamp)
-            duration += visualizer.draw(timestamp)
-            delta -= duration
-        }
-        queue.push(stft)
-        queue.push(meter)
-        queue.push(wave)
-        queue.push(fft)
-        lastDraw = timestamp
-        requestAnimationFrame(draw)
-    }
+    window.wave = wave
 
-    let requesting = false
-    let lastRequest = 0
-    player.addEventListener('timeupdate', async function (event) {
-        if (event.timeStamp >= lastRequest + 2000 && !requesting) {
-            requesting = true
-            const resp = await fetch(`./currentTrack?channelId=${channelsList.dataset.selectedChannel}`)
-            const trackInfo = await resp.json()
-            currentTrack.innerText = `${trackInfo.title} - ${trackInfo.artistCredits}`
-            lastRequest = event.timeStamp
-            requesting = false
-        }
-    })
-    player.addEventListener('play', draw)
+    function start() {
+        const queue = [stft, meter, wave, fft]
+        queue.forEach((visualizer) => {
+            if (!visualizer.handle) {
+                visualizer.draw()
+            }
+        })
+    }
+    start()
+
     player.play()
 }
 

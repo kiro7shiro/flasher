@@ -13,11 +13,13 @@ class STFT extends Visualizer {
         this.firstFrame = 0
         this.secondFrame = 1
         this.timeframe = timeframe
+        //
         this.scaleOffsetX = 37
-        this.scaleOffsetY = 40
+        this.scaleOffsetY = 10
+        this.borderBottom = 50
         //
         offscreen.width = offscreen.width - this.scaleOffsetX
-        offscreen.height = offscreen.height - this.scaleOffsetY
+        offscreen.height = offscreen.height - this.borderBottom
         this.cellsWidth = Math.round(offscreen.width / buffer.length)
         this.cellsHeight = offscreen.height / timeframe
         //
@@ -37,7 +39,7 @@ class STFT extends Visualizer {
         this.scaleCanvas.width = width
         this.scaleCanvas.height = height
         this.scaleCanvas.style.position = 'absolute'
-        this.scaleCanvas.style.zIndex = 3
+        this.scaleCanvas.style.zIndex = 2
         this.screen.container.append(this.scaleCanvas)
         this.scaleChart = new Chart(this.scaleCanvas, {
             type: 'bar',
@@ -77,26 +79,31 @@ class STFT extends Visualizer {
     }
     draw(timestamp) {
         const delta = timestamp - this.lastDraw
+        this.update(timestamp)
         const { cellsHeight, firstFrame, secondFrame, frames, pixels, timeframe } = this
         const frame = frames[secondFrame]
-        const y = this.frameCount * cellsHeight - delta / 60
+        const y = this.frameCount * cellsHeight
         for (let hCnt = 0; hCnt < cellsHeight; hCnt++) {
             frame.context.putImageData(pixels, 0, y + hCnt)
         }
+        const { offscreen, scaleOffsetX, scaleOffsetY, screen } = this
         this.frameCount++
         if (this.frameCount > timeframe) {
             this.frameCount = 0
             this.firstFrame = secondFrame
             this.secondFrame = firstFrame
+            /* const debugHtml = `<div style="position: absolute;left: 10px; top: 10px;">${delta.toFixed(2)}</div>`
+            screen.debug(debugHtml) */
         }
-        const { offscreen, scaleOffsetX, screen } = this
         offscreen.clear()
-        offscreen.context.drawImage(frames[firstFrame].canvas, 0, -y)
-        offscreen.context.drawImage(frames[secondFrame].canvas, 0, offscreen.height - y)
+        offscreen.context.drawImage(frames[firstFrame].canvas, 0, -y - parseInt(delta / 16.66))
+        offscreen.context.drawImage(frames[secondFrame].canvas, 0, offscreen.height - y - parseInt(delta / 16.66))
         screen.clear()
-        screen.context.drawImage(offscreen.canvas, scaleOffsetX, 0)
+        screen.context.drawImage(offscreen.canvas, scaleOffsetX, scaleOffsetY)
         this.lastDraw = performance.now()
-        return this.lastDraw - timestamp
+        super.draw()
+        return this.handle
+        //return this.lastDraw - timestamp
     }
     update(timestamp) {
         const { analyser, buffer, cellsWidth, pixels } = this

@@ -3,46 +3,45 @@ import { Visualizer } from './Visualizer.js'
 class FFT extends Visualizer {
     constructor(sound, width, height, left, top, { fftSize = 256, smoothingTimeConstant = 0.5 } = {}) {
         super(sound, width, height, left, top, { fftSize, smoothingTimeConstant })
-        const { buffer, offscreen } = this
+        const { analyser, buffer, offscreen } = this
+        analyser.maxDecibels = -20
+        analyser.smoothingTimeConstant = 0.5
+        //
+        this.scaleOffsetX = 37
+        this.scaleOffsetY = 10
+        this.borderBottom = 50
+        //
+        offscreen.width = offscreen.width - this.scaleOffsetX
+        offscreen.height = offscreen.height - this.borderBottom
+        //
         this.chart = new Chart(offscreen.canvas, {
             type: 'bar',
             data: {
-                labels: buffer.reduce(function (accu, curr, index) {
-                    accu.push(index)
-                    return accu
-                }, []),
+                labels: new Array(buffer.length).fill(0),
                 datasets: [
                     {
                         label: 'freq',
                         display: false,
                         data: [],
-                        //borderWidth: 1,
+                        normalized: true,
                         fill: true,
-                        //borderColor: '#e8e6e3',
-                        backgroundColor: '#e8e6e3',
-                        tension: 0.25,
-                        pointStyle: false
+                        backgroundColor: '#e8e6e3'
                     }
                 ]
             },
             options: {
                 animation: false,
-                animations: {
-                    x: false
-                },
                 scales: {
                     y: {
-                        min: 1,
-                        max: 256,
-                        grid: {
-                            display: true
+                        display: false,
+                        ticks: {
+                            display: false
                         }
                     },
                     x: {
-                        min: 1,
-                        max: this.analyser.frequencyBinCount,
-                        grid: {
-                            display: true
+                        display: false,
+                        ticks: {
+                            display: false
                         }
                     }
                 },
@@ -51,21 +50,65 @@ class FFT extends Visualizer {
                         display: false
                     },
                     decimation: {
-                        enabled: true,
-                        threshold: offscreen.width / 2
+                        enabled: true
                     }
                 },
                 responsive: false
             }
         })
-        this.analyser.maxDecibels = -20
-        this.analyser.smoothingTimeConstant = 0.5
+        //
+        this.scaleCanvas = document.createElement('canvas')
+        this.scaleCanvas.width = width
+        this.scaleCanvas.height = height
+        this.scaleCanvas.style.position = 'absolute'
+        this.scaleCanvas.style.zIndex = 2
+        this.screen.container.append(this.scaleCanvas)
+        this.scaleChart = new Chart(this.scaleCanvas, {
+            type: 'bar',
+            data: {
+                labels: buffer.reduce(function (accu, curr, index) {
+                    accu.push(index)
+                    return accu
+                }, [])
+            },
+            options: {
+                animation: false,
+                scales: {
+                    y: {
+                        min: 1,
+                        max: 256,
+                        reverse: false,
+                        grid: {
+                            display: true
+                        }
+                    },
+                    x: {
+                        min: 1,
+                        max: buffer.length,
+                        grid: {
+                            display: true
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                responsive: false
+            }
+        })
     }
     draw(timestamp) {
-        const { screen, offscreen } = this
+        this.delta = timestamp - this.lastDraw
+        const { screen, offscreen, scaleOffsetX, scaleOffsetY } = this
+        this.update(timestamp)
         screen.clear()
-        screen.context.drawImage(offscreen.canvas, 0, 0)
-        return performance.now() - timestamp
+        screen.context.drawImage(offscreen.canvas, scaleOffsetX, scaleOffsetY)
+        this.lastDraw = timestamp
+        super.draw()
+        return this.handle
+        //return performance.now() - timestamp
     }
     update(timestamp) {
         // draw fft chart
@@ -73,7 +116,7 @@ class FFT extends Visualizer {
         analyser.getByteFrequencyData(buffer)
         chart.data.datasets[0].data = buffer
         // NOTE : chart.update() clears the canvas, too.
-        chart.update()
+        chart.update('none')
         return performance.now() - timestamp
     }
 }
