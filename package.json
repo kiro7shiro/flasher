@@ -17,6 +17,6 @@
     "express-ejs-layouts": "^2.5.1"
   },
   "nodemonConfig": {
-    "ext": "js,mjs,json,ejs"
+    "ext": "js,mjs,ejs"
   }
 }

@@ -1,10 +1,13 @@
+const data = require('../data.json')
 const express = require('express')
 const router = express.Router()
 const fluxfm = require('../src/flux-fm.js')
+const fs = require('fs/promises')
+const path = require('path')
 
 router.get('/', async function (req, res) {
     const channels = await fluxfm.channels()
-    const { lastChannel } = require('../data.json')
+    const { lastChannel } = data
     const channel = channels.find(function (ch) {
         return ch.displayName === lastChannel
     })
@@ -21,6 +24,19 @@ router.get('/currentTrack', async function (req, res) {
     const { channelId } = req.query
     const trackInfo = await fluxfm.currentTrack(channelId)
     res.json(trackInfo)
+})
+
+router.post('/selectedChannel', async function (req, res) {
+    let { channel } = req.query
+    channel = JSON.parse(channel)
+    data.lastChannel = channel.displayName
+    try {
+        await fs.writeFile(path.resolve(__dirname, '../data.json'), JSON.stringify(data, null, 4))
+        res.sendStatus(200)
+    } catch (error) {
+        console.error(error)
+        res.sendStatus(500)
+    }
 })
 
 const visualizers = {}
