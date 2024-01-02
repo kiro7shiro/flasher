@@ -1,0 +1,18 @@
+<div class="w3-row w3-border-top w3-border-bottom">
+    <div class="w3-quarter w3-border-right w3-padding">
+        <div class="w3-row">
+            <div>lineWitdh</div>
+            <input class="w3-input" type="number" name="cols" id="lineWitdh">
+        </div>
+        <div class="w3-row">
+            <div>lineColor</div>
+            <input class="w3-input" type="number" name="rows" id="lineColor">
+        </div>
+    </div>
+    <div class="w3-quarter w3-border-right w3-padding">
+        <%- include('../nodes/AnalyzerNode') %>
+    </div>
+    <div class="w3-rest">
+        <%- include('AudioGraph') %>
+    </div>
+</div>

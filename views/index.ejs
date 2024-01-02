@@ -1,4 +1,4 @@
-<body class="w3-container w3-dark-grey">
+<div class="w3-container w3-gray">
     <div class="w3-row w3-padding-16">
 
         <div class="w3-container w3-quarter">
@@ -9,6 +9,7 @@
             <h1>player</h1>
             <div class="w3-container">
                 <h4 id="currentTrack">test</h4>
+                <div id="trackImage"></div>
             </div>
             <audio class="player" id="player" src="<%= lastChannel.streams[1].url %>" controls
                 crossorigin="anonymous"></audio>
@@ -16,20 +17,18 @@
 
     </div>
 
+    <%- include('controls/Menu') %>
+
     <div class="w3-row w3-padding-16">
 
         <div class="w3-container w3-quarter">
-            <h1>controls</h1>
-            <div id="controls" class="w3-bar-block">
-
-            </div>
+            <h3>controls</h3>
+            <div id="controls"> </div>
         </div>
 
         <div class="w3-container w3-rest">
-            <h1>workspace</h1>
-            <div id="workspace" style="position: relative;height: 100vh;">
-
-            </div>
+            <h3>workspace</h3>
+            <div id="workspace"> </div>
         </div>
 
     </div>
@@ -37,5 +36,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="ejs/ejs.js"></script>
     <script type="module" src="bin/clubber.js"></script>
+    <script src="bin/ejs.js"></script>
     <script type="module" src="src/index.js"></script>
-</body>
+</div>

@@ -1,10 +1,10 @@
 <h1>channels</h1>
-<ul class="w3-ul w3-border channelsList" id="channelsList" data-channels="<%= JSON.stringify(channels) %>" data-selected-channel="<%= lastChannel.channelId %>">
+<ul class="w3-ul channelsList" id="channelsList" data-channels="<%= JSON.stringify(channels) %>" data-selected-channel="<%= lastChannel.channelId %>">
     <% channels.forEach(channel => { %>
         <% if (channel.displayName === lastChannel.displayName ) { %>
-            <button class="w3-button w3-block selectedChannel">
+            <button class="w3-button w3-text-white w3-block selectedChannel">
         <% } else { %>
-            <button class="w3-button w3-block">
+            <button class="w3-button w3-text-white w3-block">
         <% } %>
             <%= channel.displayName %>
         </button>
