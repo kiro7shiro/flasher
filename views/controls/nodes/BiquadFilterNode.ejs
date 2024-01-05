@@ -1,15 +1,15 @@
 <div class="w3-row" id="<%= id %>">
     <h6><%= type %></h6>
     <div class="w3-quarter w3-center">
-        <%- include('Fader', { title: 'freq', id: 'frequency', min: '20', max: '22000', value: '0'}) %>
+        <%- include('../Fader', { title: 'freq', id: 'frequency', min: '20', max: '22000', value: '0'}) %>
     </div>
     <div class="w3-quarter w3-center">
-        <%- include('Fader', { title: 'detune', id: 'detune', min: '0', max: '1', step: '.05', value: '0'}) %>
+        <%- include('../Fader', { title: 'detune', id: 'detune', min: '0', max: '1', step: '.05', value: '0'}) %>
     </div>
     <div class="w3-quarter w3-center">
-        <%- include('Fader', { title: 'Q', id: 'Q', min: '-0.001', max: '1000',value: '0'}) %>
+        <%- include('../Fader', { title: 'Q', id: 'Q', min: '-0.001', max: '1000',value: '0'}) %>
     </div>
     <div class="w3-quarter w3-center">
-        <%- include('Fader', { title: 'gain', id: 'gain', min: '-40', max: '40',value: '0'}) %>
+        <%- include('../Fader', { title: 'gain', id: 'gain', min: '-40', max: '40',value: '0'}) %>
     </div>
 </div>

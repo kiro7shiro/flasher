@@ -1,10 +1,14 @@
-<div class="w3-row controlsList w3-border-top w3-border-bottom">
-
-    <div class="w3-row w3-padding">
-        <%- include('../nodes/AnalyzerNode') %>
+<div class="w3-container" id="<%= id %>">
+    <div class="w3-container">
+        <h6 class="w3-left">
+            <%= id %>
+        </h6>
     </div>
-    <div class="w3-row w3-padding">
-        <%- include('AudioGraph') %>
-    </div>
+    <div class="w3-row controlsList w3-border-top w3-border-bottom">
 
+        <div class="w3-row w3-padding">
+            <%- include('../nodes/AnalyzerNode') %>
+        </div>
+
+    </div>
 </div>

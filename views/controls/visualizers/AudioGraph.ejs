@@ -3,6 +3,6 @@
 <% audioGraph.forEach((node) => { %>
     <% count++ %>
     <div <% /* eslint-disable css-propertyvalueexpected */ %> class="w3-row w3-padding">
-        <%- include(node.class, { id: `${node.class}${count}`, type: node.type }) %>
+        <%- include(`../nodes/${node.class}`, { id: `${node.class}${count}`, type: node.type }) %>
     </div>
 <% }) %>

@@ -1,23 +1,28 @@
+h1, h2, h3, h4, h5, h6 {
+    color: #e9e9ed;
+}
+
 .screen {
     position: absolute;
     cursor: move;
 }
 
 .channelsList {
-    height: 160px;
+    height: 10em;
     overflow: scroll;
-}
-
-.channelButton {
-    background-color: #1b1b1b;
+    border: 1px solid #e9e9ed;
 }
 
 .selectedChannel {
-    background-color: #00b6f0;
+    color: #1b1b1b !important;
+    background-color: #cccccc;
+}
+
+.selectedVisualizer {
+    border: 1px solid #e9e9ed
 }
 
 .controlsList {
-    height: 20vh;
     overflow: scroll;
 }
 
@@ -26,13 +31,35 @@
 }
 
 .fader-title {
+    color: #e9e9ed;
     font-size: x-small;
 }
 
 .fader-value {
+    color: #e9e9ed;
     font-size: x-small;
 }
 
 .player {
     width: 100%;
+}
+
+#currentTrack {
+    color: #e9e9ed;
+}
+
+#trackImage {
+    width: 64px;
+}
+
+#menu {
+    color: #e9e9ed;
+    z-index: 4;
+}
+
+#workspace {
+    height: 30em;
+    width: 100%;
+    position: relative;
+    background-color: #333333;
 }

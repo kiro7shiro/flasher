@@ -2,33 +2,38 @@
     <div class="w3-row w3-padding-16">
 
         <div class="w3-container w3-quarter">
+            <h5>channels</h5>
             <%- include('controls/channels', { lastChannel, channels }) %>
         </div>
 
         <div class="w3-container w3-rest">
-            <h1>player</h1>
+            <h5>player</h5>
             <div class="w3-container">
-                <h4 id="currentTrack">test</h4>
-                <div id="trackImage"></div>
+                <div class="w3-left">
+                    <p id="currentTrack">test</p>
+                </div>
+                <div class="w3-right">
+                    <img id="trackImage" src="" alt="">
+                </div>
             </div>
-            <audio class="player" id="player" src="<%= lastChannel.streams[1].url %>" controls
+            <audio class="player" id="player" src="<%= lastChannel.streams[0].url %>" controls
                 crossorigin="anonymous"></audio>
         </div>
 
     </div>
 
-    <%- include('controls/Menu') %>
-
     <div class="w3-row w3-padding-16">
 
         <div class="w3-container w3-quarter">
-            <h3>controls</h3>
-            <div id="controls"> </div>
+            <h5>controls</h5>
+            <%- include('controls/Menu') %>
+            <div id="controls"></div>
         </div>
 
         <div class="w3-container w3-rest">
-            <h3>workspace</h3>
-            <div id="workspace"> </div>
+            <h5>workspace</h5>
+            <div id="workspace">
+            </div>
         </div>
 
     </div>
@@ -37,5 +42,5 @@
     <script src="ejs/ejs.js"></script>
     <script type="module" src="bin/clubber.js"></script>
     <script src="bin/ejs.js"></script>
-    <script type="module" src="src/index.js"></script>
+    <script type="module" src="client/index.js"></script>
 </div>

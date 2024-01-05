@@ -1,4 +1,3 @@
-<h1>channels</h1>
 <ul class="w3-ul channelsList" id="channelsList" data-channels="<%= JSON.stringify(channels) %>" data-selected-channel="<%= lastChannel.channelId %>">
     <% channels.forEach(channel => { %>
         <% if (channel.displayName === lastChannel.displayName ) { %>

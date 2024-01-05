@@ -1,10 +1,22 @@
-<div id="menu" class="w3-bar">
-    <div class="w3-bar-item">Menu</div>
+<div id="menu" class="w3-bar-block">
     <div class="w3-dropdown-hover">
         <button class="w3-button">add visualizer</button>
         <div class="w3-dropdown-content w3-bar-block w3-card-4">
             <% visualizers.forEach(visualizer => { %>
-                <a href="#" class="w3-bar-item w3-button" data-action="add-visualizer-<%= visualizer %>"><%= visualizer %></a>
+                <a href="#" class="w3-bar-item w3-button" data-action="add-visualizer-<%= visualizer %>">
+                    <%= visualizer %>
+                </a>
+            <% })%>
+        </div>
+    </div>
+    <div class="w3-bar-item w3-button" data-action="del-visualizer">del visualizer</div>
+    <div class="w3-dropdown-hover">
+        <button class="w3-button">add node</button>
+        <div class="w3-dropdown-content w3-bar-block w3-card-4">
+            <% nodes.forEach(node => { %>
+                <a href="#" class="w3-bar-item w3-button" data-action="add-node-<%= node %>">
+                    <%= node %>
+                </a>
             <% })%>
         </div>
     </div>
