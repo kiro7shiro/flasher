@@ -14,6 +14,9 @@ class Visualizers {
     static Meter = Meter
     static STFT = STFT
     static Waveform = Waveform
+    static mapNumRange = function (num, inMin, inMax, outMin, outMax) {
+        return ((num - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin
+    }
 }
 
 export { Visualizers }

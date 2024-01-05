@@ -108,9 +108,8 @@ class Waveform extends Visualizer {
         this.update(timestamp)
         screen.clear()
         screen.context.drawImage(offscreen.canvas, scaleOffsetX, scaleOffsetY)
-        super.draw()
+        this.handle = requestAnimationFrame(this.draw.bind(this))
         return this.handle
-        //return performance.now() - timestamp
     }
     update(timestamp) {
         const { analyser, buffer, chart } = this

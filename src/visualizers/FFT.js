@@ -1,5 +1,7 @@
 import { Visualizer } from './Visualizer.js'
 
+const timerDebugTemplate = '<div>fps: <%= frames %></div>'
+
 class FFT extends Visualizer {
     constructor(sound, width, height, left, top, { fftSize = 256, smoothingTimeConstant = 0.5 } = {}) {
         super(sound, width, height, left, top, { fftSize, smoothingTimeConstant })
@@ -99,25 +101,32 @@ class FFT extends Visualizer {
             }
         })
     }
+
     draw(timestamp) {
-        this.delta = timestamp - this.lastDraw
+        const { timer } = this
+        timer.delta = timestamp - timer.last
+
         const { screen, offscreen, scaleOffsetX, scaleOffsetY } = this
-        this.update(timestamp)
+        this.update()
         screen.clear()
         screen.context.drawImage(offscreen.canvas, scaleOffsetX, scaleOffsetY)
-        this.lastDraw = timestamp
-        super.draw()
+        this.handle = requestAnimationFrame(this.draw.bind(this))
+
+        if (timestamp > timer.last + 1000) {
+            timer.last = performance.now()
+            timer.frames = 0
+        }
+        timer.frames++
+
         return this.handle
-        //return performance.now() - timestamp
     }
-    update(timestamp) {
+    update() {
         // draw fft chart
         const { analyser, buffer, chart } = this
         analyser.getByteFrequencyData(buffer)
         chart.data.datasets[0].data = buffer
         // NOTE : chart.update() clears the canvas, too.
         chart.update('none')
-        return performance.now() - timestamp
     }
 }
 

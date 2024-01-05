@@ -1,3 +1,4 @@
+import { Visualizers } from './Visualizers.js'
 import { Visualizer } from './Visualizer.js'
 
 class Meter extends Visualizer {
@@ -106,9 +107,8 @@ class Meter extends Visualizer {
         this.update(timestamp)
         screen.clear()
         screen.context.drawImage(offscreen.canvas, scaleOffsetX, 0)
-        super.draw()
+        this.handle = requestAnimationFrame(this.draw.bind(this))
         return this.handle
-        //return performance.now() - timestamp
     }
     update(timestamp) {
         // draw volume chart
@@ -121,8 +121,8 @@ class Meter extends Visualizer {
         const ampMin = Math.min(...buffer)
         const ampMax = Math.max(...buffer)
         const volume = Math.sqrt(sum / buffer.length)
-        const vAbs = 1 - Visualizer.mapNumRange(volume, 0, 256, 0, 1)
-        const vRel = 1 - Visualizer.mapNumRange(volume, ampMin, ampMax, 0, 1)
+        const vAbs = 1 - Visualizers.mapNumRange(volume, 0, 256, 0, 1)
+        const vRel = 1 - Visualizers.mapNumRange(volume, ampMin, ampMax, 0, 1)
         chart.data.datasets[0].data = [
             [-vAbs, -1],
             [-vRel, -1]
