@@ -1,85 +1,87 @@
+/**
+ * Handles requesting controls from the server and adds events
+ * to the resulting html.
+ */
+
+import { Visualizers } from './Visualizers.js'
 import { Visualizer } from './Visualizer.js'
 import { Grid } from './Grid.js'
 
 /**
- * Get the html controls for a visualizer.
+ * Get the html controls for a visualizer or an audio node.
  * Adds events, too.
- * @param {Visualizer} visualizer the visualizer to get the controls for
+ * @param {Visualizer|AudioNode} instance the visualizer or node to get the controls for
  * @returns {HTMLDivElement}
  */
-export async function getControls(visualizer) {
-    const visualizerClass = visualizer.constructor.name
-    // build audio graph query
-    const audioGraph = []
-    for (let aCnt = 0; aCnt < visualizer.audioGraph.length; aCnt++) {
-        const node = visualizer.audioGraph[aCnt]
-        const nodeClass = node.constructor.name
-        const data = {
-            class: nodeClass,
-            type: node.type
-        }
-        audioGraph.push(data)
-    }
-    // stringify audioGraph
+export async function getControls(instance) {
+    const className = instance.constructor.name
+    // stringify params
+    const isAudioNode = instance instanceof AudioNode
     const params = new URLSearchParams()
-    params.append('visualizer', visualizerClass)
-    params.append('audioGraph', JSON.stringify(audioGraph))
-    // get visualizer controls
+    params.append('instance', className)
+    params.append('isAudioNode', isAudioNode)
+    if (isAudioNode && instance instanceof BiquadFilterNode) {
+        params.append('type', instance.type)
+    }
+    // get controls
     const resp = await fetch(`./controls?${params}`)
     const html = await resp.text()
-    // add audio graph events
-    const controls = visualizer.addControlsEvents(html)
+    // add events
+    const controls = addEvents(instance, html)
     return controls
 }
 
-/**
- * Add events for an analyser node
- * @param {AnalyserNode} analyser the analyser to bind the events for
- * @param {HTMLDivElement} html the html container to wich the events are added
- * @returns {HTMLDivElement}
- */
-export function addAnalyzerEvents(analyser, html) {
+export function addEvents(instance, html) {
     const container = document.createElement('div')
-    container.classList.add('w3-bar-item')
     container.innerHTML = html
-    const minDecibels = container.querySelector('#minDecibels')
-    const minDbValue = container.querySelector('#minDecibels-value')
-    const maxDecibels = container.querySelector('#maxDecibels')
-    const maxDbValue = container.querySelector('#maxDecibels-value')
-    const smoothingTimeConstant = container.querySelector('#smoothingTimeConstant')
-    const timeValue = container.querySelector('#smoothingTimeConstant-value')
-    minDecibels.addEventListener('change', function (event) {
-        analyser.minDecibels = event.target.value
-        minDbValue.innerText = `${analyser.minDecibels} dB`
-    })
-    maxDecibels.addEventListener('change', function (event) {
-        analyser.maxDecibels = event.target.value
-        maxDbValue.innerText = `${analyser.maxDecibels} dB`
-    })
-    smoothingTimeConstant.addEventListener('change', function (event) {
-        analyser.smoothingTimeConstant = event.target.value
-        timeValue.innerText = `${analyser.smoothingTimeConstant} ms`
-    })
-    minDecibels.value = analyser.minDecibels
-    minDbValue.innerText = `${analyser.minDecibels} dB`
-    maxDecibels.value = analyser.maxDecibels
-    maxDbValue.innerText = `${analyser.maxDecibels} dB`
-    smoothingTimeConstant.value = analyser.smoothingTimeConstant
-    timeValue.innerText = `${analyser.smoothingTimeConstant} ms`
+    const analyserEvents = audioNodesEvents['AnalyserNode']
+    switch (true) {
+        case instance instanceof AudioNode:
+            addAudioNodeEvents(instance, container)
+            break
+        case instance instanceof Visualizer:
+            analyserEvents(instance.analyser, container)
+        case instance instanceof Visualizers.FFT:
+            break
+    }
     return container
+}
+
+export function addAudioNodeEvents(instance, container) {
+    const className = instance.constructor.name
+    const events = audioNodesEvents[className]
+    if (events) events(instance, container)
 }
 
 /**
  * Holds events for some AudioNodes from WebAudioApi
  */
-const audioGraphEvents = {
-    DelayNode: function name(delay, container) {
-        const delayValue = container.querySelector('#delay')
-        delayValue.addEventListener('change', function (event) {
-            delay.delayTime.value = event.target.value
-            delayValue.innerText = delay.delayTime.value
+const audioNodesEvents = {
+    AnalyserNode: function (analyser, container) {
+        const minDecibels = container.querySelector('#minDecibels')
+        const minDbValue = container.querySelector('#minDecibels-value')
+        const maxDecibels = container.querySelector('#maxDecibels')
+        const maxDbValue = container.querySelector('#maxDecibels-value')
+        const smoothingTimeConstant = container.querySelector('#smoothingTimeConstant')
+        const timeValue = container.querySelector('#smoothingTimeConstant-value')
+        minDecibels.addEventListener('change', function (event) {
+            analyser.minDecibels = event.target.value
+            minDbValue.innerText = `${analyser.minDecibels} dB`
         })
-        delayValue.innerText = delay.delayTime.value
+        maxDecibels.addEventListener('change', function (event) {
+            analyser.maxDecibels = event.target.value
+            maxDbValue.innerText = `${analyser.maxDecibels} dB`
+        })
+        smoothingTimeConstant.addEventListener('change', function (event) {
+            analyser.smoothingTimeConstant = event.target.value
+            timeValue.innerText = `${analyser.smoothingTimeConstant} ms`
+        })
+        minDecibels.value = analyser.minDecibels
+        minDbValue.innerText = `${analyser.minDecibels} dB`
+        maxDecibels.value = analyser.maxDecibels
+        maxDbValue.innerText = `${analyser.maxDecibels} dB`
+        smoothingTimeConstant.value = analyser.smoothingTimeConstant
+        timeValue.innerText = `${analyser.smoothingTimeConstant} ms`
     },
     BiquadFilterNode: function (filter, container) {
         const frequency = container.querySelector('#frequency')
@@ -113,6 +115,22 @@ const audioGraphEvents = {
         Q.value = filter.Q.value
         gain.value = filter.gain.value
         gainValue.innerText = `${filter.gain.value} dB`
+    },
+    DelayNode: function (delay, container) {
+        const delayValue = container.querySelector('#delay')
+        delayValue.addEventListener('change', function (event) {
+            delay.delayTime.value = event.target.value
+            delayValue.innerText = delay.delayTime.value
+        })
+        delayValue.innerText = delay.delayTime.value
+    },
+    GainNode: function (gain, container) {
+        const gainSlider = container.querySelector('#gain')
+        const gainValue = container.querySelector('#gain-value')
+        gainSlider.addEventListener('change', function (event) {
+            gain.gain.value = event.target.value
+            gainValue.innerText = `${gain.gain.value} dB`
+        })
     }
 }
 
@@ -125,7 +143,7 @@ export function addAudioGraphEvents(visualizer, container) {
     for (let nCnt = 0; nCnt < visualizer.audioGraph.length; nCnt++) {
         const node = visualizer.audioGraph[nCnt]
         const nodeClassName = node.constructor.name
-        const events = audioGraphEvents[nodeClassName]
+        const events = audioNodesEvents[nodeClassName]
         const id = `${nodeClassName}${nCnt + 1}`
         const nodeContainer = container.querySelector(`#${id}`)
         events(node, nodeContainer)
