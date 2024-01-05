@@ -1,14 +1,37 @@
+/**
+ * API for interacting with fluxfm radio channels
+ * @returns {Object}
+ */
+
+const memory = {
+    channels: null
+}
+
+async function channel(identifier) {
+    if (!memory.channels) await channels()
+    return memory.channels.find(function (channel) {
+        return identifier === channel.name || identifier === channel.displayName || identifier === channel.channelId
+    })
+}
+
 async function channels() {
-    const response = await fetch('https://fluxmusic.api.radiosphere.io/channels')
-    const json = await response.json()
-    return json.items
+    if (!memory.channels) {
+        const response = await fetch('https://fluxmusic.api.radiosphere.io/channels')
+        const json = await response.json()
+        memory.channels = json.items
+    }
+    return memory.channels
 }
 
 async function currentTrack(channelId) {
     const now = Date.now()
     const response = await fetch(`https://fluxmusic.api.radiosphere.io/channels/${channelId}/current-track?time=${now}`)
-    const json = await response.json()
-    return json.trackInfo
+    let result = response.status
+    if (response.status === 200) {
+        const json = await response.json()
+        result = json.trackInfo
+    }
+    return result
 }
 
-module.exports = { channels, currentTrack }
+module.exports = { channel, channels, currentTrack }
