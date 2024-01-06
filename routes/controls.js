@@ -7,7 +7,6 @@ const logger = require('../logger.js')
 
 const visualizers = {}
 router.get('/', function (req, res) {
-    console.log(req.query)
     const { instance, isAudioNode } = req.query
     logger.info(`Constructing controls for: ${instance}`)
     // increase count
@@ -15,14 +14,17 @@ router.get('/', function (req, res) {
     visualizers[instance]++
     const id = `${instance}${visualizers[instance]}`
     // render controls
+    const locals = Object.assign({ id, layout: false }, req.query)
     if (isAudioNode === 'false') {
-        res.render(`controls/visualizers/${instance}`, { id, layout: false })
+        res.render(`controls/visualizers/${instance}`, locals)
     } else {
-        const locals = { id, instance, layout: false }
-        if (instance === 'BiquadFilterNode') locals.type = req.query.type
         res.render(`controls/nodes/${instance}`, locals)
     }
-    
+})
+
+router.get('/addNode', function (req, res) {
+    const { identifier } = req.query
+    res.render('controls/addNode/AddNode', { identifier, layout: false })
 })
 
 module.exports = router

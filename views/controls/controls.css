@@ -1,4 +1,10 @@
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
     color: #e9e9ed;
 }
 
@@ -19,7 +25,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .selectedVisualizer {
-    border: 1px solid #e9e9ed
+    border: 1px solid #e9e9ed;
 }
 
 .controlsList {
@@ -42,6 +48,22 @@ h1, h2, h3, h4, h5, h6 {
 
 .player {
     width: 100%;
+}
+
+.addNode {
+    display: block;
+    position: absolute;
+    /* width: 25em;
+    height: 25em; */
+    background-color: #333333;
+    z-index: 4;
+    left: 33%;
+    top: 33%;
+}
+
+.closeButton {
+    color: #e9e9ed;
+    cursor: pointer;
 }
 
 #currentTrack {

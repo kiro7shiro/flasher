@@ -1,4 +1,10 @@
-<div class="fader-title"><%= title %></div>
-<% if(!locals.step) locals.step = 1 %>
-<input id="<%= id %>" class="fader" type="range" orient="vertical" min="<%= min %>" max="<%= max %>" step="<%= step %>" value="<%= value %>">
-<div class="fader-value" id="<%= id %>-value"><%= value %></div>
+<div class="fader-title">
+    <%= title %>
+</div>
+<% if(!locals.step) locals.step=1 %>
+<% if(!locals.orient) locals.orient='vertical' %>
+<input id="<%= id %>" class="fader" type="range" orient="<%= orient %>" min="<%= min %>" max="<%= max %>"
+    step="<%= step %>" value="<%= value %>">
+<div class="fader-value" id="<%= id %>-value">
+    <%= value %>
+</div>

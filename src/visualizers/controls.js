@@ -13,15 +13,15 @@ import { Grid } from './Grid.js'
  * @param {Visualizer|AudioNode} instance the visualizer or node to get the controls for
  * @returns {HTMLDivElement}
  */
-export async function getControls(instance) {
+export async function getControls(instance, options = {}) {
     const className = instance.constructor.name
     // stringify params
     const isAudioNode = instance instanceof AudioNode
     const params = new URLSearchParams()
     params.append('instance', className)
     params.append('isAudioNode', isAudioNode)
-    if (isAudioNode && instance instanceof BiquadFilterNode) {
-        params.append('type', instance.type)
+    for (const key in options) {
+        params.append(key, options[key])
     }
     // get controls
     const resp = await fetch(`./controls?${params}`)
@@ -117,12 +117,13 @@ const audioNodesEvents = {
         gainValue.innerText = `${filter.gain.value} dB`
     },
     DelayNode: function (delay, container) {
+        console.log(delay)
         const delayValue = container.querySelector('#delay')
         delayValue.addEventListener('change', function (event) {
             delay.delayTime.value = event.target.value
-            delayValue.innerText = delay.delayTime.value
+            delayValue.value = delay.delayTime.value
         })
-        delayValue.innerText = delay.delayTime.value
+        delayValue.value = delay.delayTime.value
     },
     GainNode: function (gain, container) {
         const gainSlider = container.querySelector('#gain')
@@ -131,6 +132,7 @@ const audioNodesEvents = {
             gain.gain.value = event.target.value
             gainValue.innerText = `${gain.gain.value} dB`
         })
+        gainValue.innerText = `${gain.gain.value} dB`
     }
 }
 

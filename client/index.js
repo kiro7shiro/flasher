@@ -3,8 +3,9 @@
 //  - read/ update: controls
 //  - delete: deleteVisualizer
 // TODO : app controls : menu
-//  - better menu
-//  - visual update
+//  - add options for audio nodes and visualizers
+//      - color, background, size
+//  - visual update, make the page more appealing
 // TODO : show source informations
 
 // 3840 * 2160
@@ -17,8 +18,10 @@
 
 import { Sound } from '../src/Sound.js'
 import { getControls } from '../src/visualizers/controls.js'
+import { addEvents } from '../src/controls/events.js'
 import { Visualizers } from '../src/visualizers/Visualizers.js'
 
+// TODO : make own classes for the app related objects
 const channelsList = document.querySelector('#channelsList')
 const currentTrack = document.querySelector('#currentTrack')
 const trackImage = document.querySelector('#trackImage')
@@ -86,9 +89,9 @@ const app = (window.app = {
         const constructor = window[identifier]
         if (!constructor) throw new Error(`${identifier} not defined.`)
         const node = new constructor(app.sound.context, options)
-        node.controls = await getControls(node)
+        node.controls = await getControls(node, options)
         const visualizer = workspace.visualizers[workspace.dataset.selectedVisualizer]
-        visualizer.controls.append(node.controls)
+        visualizer.controls.querySelector('.controlsList').append(node.controls)
         player.pause()
         app.disconnect()
         visualizer.audioGraph.push(node)
@@ -125,7 +128,17 @@ const app = (window.app = {
         controls.textContent = ''
         controls.append(workspace.visualizers[identifier].controls)
     },
-    setup() {
+    async showAddNode(identifier) {
+        const resp = await fetch(`./controls/addNode?identifier=${identifier}`)
+        const html = await resp.text()
+        document.body.firstElementChild.insertAdjacentHTML('afterend', html)
+        const addNode = document.querySelector('.addNode')
+        addEvents(addNode, identifier)
+        addNode.addEventListener('add', function (event) {
+            app.addNode(identifier, event.detail)
+        })
+    },
+    async setup() {
         // connect
         app.sound.connect(player)
         // setup event handlers
@@ -140,7 +153,8 @@ const app = (window.app = {
                         if (type === 'visualizer') {
                             app.addVisualizer(identifier)
                         } else {
-                            app.addNode(identifier, { type: 'highpass', frequency: 11200 })
+                            app.showAddNode(identifier)
+                            //app.addNode(identifier, { type: 'highpass', frequency: 11200 })
                         }
                         break
                     case 'del':
@@ -193,7 +207,7 @@ workspace.selectVisualizer = function (identifier) {
 }
 
 async function main() {
-    app.setup()
+    await app.setup()
     await app.addVisualizer('STFT', { width: 512, height: 256, fftSize: 1024 })
     await app.addVisualizer('FFT', { top: 256 })
     await app.addVisualizer('Meter', { left: 256, top: 256 })
