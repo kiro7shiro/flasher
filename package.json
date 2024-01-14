@@ -1,6 +1,6 @@
 {
   "name": "flasher",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -15,6 +15,7 @@
     "ejs": "^3.1.9",
     "express": "^4.18.2",
     "express-ejs-layouts": "^2.5.1",
+    "socket.io": "^4.7.3",
     "winston": "^3.11.0"
   },
   "nodemonConfig": {

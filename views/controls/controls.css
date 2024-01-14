@@ -16,7 +16,7 @@ p {
 .channelsList {
     height: 10em;
     overflow: scroll;
-    border: 1px solid #e9e9ed;
+    border: 1px solid #333;
 }
 
 .selectedChannel {
@@ -25,6 +25,10 @@ p {
 }
 
 .selectedVisualizer {
+    border: 1px solid #e9e9ed;
+}
+
+.selectedNode {
     border: 1px solid #e9e9ed;
 }
 
@@ -66,10 +70,6 @@ p {
     cursor: pointer;
 }
 
-#currentTrack {
-    color: #e9e9ed;
-}
-
 #trackImage {
     width: 64px;
 }
@@ -80,8 +80,7 @@ p {
 }
 
 #workspace {
-    height: 30em;
     width: 100%;
-    position: relative;
-    background-color: #333333;
+    height: 100%;
+    position: absolute;
 }

@@ -16,22 +16,78 @@
 // 160  * 90
 // 80   * 45
 
-import { Sound } from '../src/Sound.js'
+/* import { Sound } from '../src/Sound.js'
 import { getControls } from '../src/visualizers/controls.js'
 import { addEvents } from '../src/controls/events.js'
-import { Visualizers } from '../src/visualizers/Visualizers.js'
+import { Visualizers } from '../src/visualizers/Visualizers.js' */
+
+import { ChannelsList } from "../src/controls/ChannelsList.js"
+import { Player } from "../src/controls/Player.js"
+import { Workspace } from "../src/controls/Workspace.js"
+
+const channelsList = new ChannelsList(document.querySelector('#channelsList'))
+channelsList.on('select', function (event) {
+    channelsList.selectedChannel = event.detail.channelId
+    console.log(channelsList.selectedChannel)
+})
+
+const player = new Player(document.querySelector('#player'))
+player.on('timeupdate', async function (event) {
+    if (event.timeStamp >= player.lastRequest + 2000 && !player.requesting) {
+        player.requesting = true
+        const response = await fetch(`./currentTrack?channelId=${channelsList.selectedChannel}`)
+        if (response.status === 200) {
+            const trackInfo = await response.json()
+            const { artwork } = trackInfo
+            if (artwork) {
+                player.trackImage.src = artwork
+            } else {
+                player.trackImage.src = 'views/images/no-image-64.png'
+            }
+            player.currentTrack.innerText = `${trackInfo.artistCredits} - ${trackInfo.title}`
+            player.lastRequest = event.timeStamp
+        } else {
+            console.log(response)
+        }
+        player.requesting = false
+    }
+})
+
+const workspace = new Workspace(document.querySelector('#workspaceSection'))
+workspace.on('add-visualizer', function (event) {
+    console.log(event)
+})
+workspace.on('del-visualizer', function (event) {
+    console.log(event)
+})
+workspace.on('add-node', function (event) {
+    console.log(event)
+})
+workspace.on('del-node', function (event) {
+    console.log(event)
+})
+console.log(workspace)
 
 // TODO : make own classes for the app related objects
-const channelsList = document.querySelector('#channelsList')
-const currentTrack = document.querySelector('#currentTrack')
+
+// app
+//  - source
+//  - sound
+//const channelsList = document.querySelector('#channelsList')
+//  - player
+/* const currentTrack = document.querySelector('#currentTrack')
 const trackImage = document.querySelector('#trackImage')
-const player = document.querySelector('#player')
-const workspace = (window.workspace = document.querySelector('#workspace'))
-const controls = document.querySelector('#controls')
+const player = document.querySelector('#player') */
+//  - workspace
+//      - menu
+//      - controls
+/* const workspace = (window.workspace = document.querySelector('#workspace'))
+const controls = document.querySelector('#controls') */
 
 // channels
-channelsList.channels = JSON.parse(channelsList.dataset.channels)
-channelsList.addEventListener('click', function (event) {
+
+//channelsList.channels = JSON.parse(channelsList.dataset.channels)
+/* channelsList.addEventListener('click', function (event) {
     // find newly selected channel
     const [selectedChannel] = channelsList.channels.filter(function (channel) {
         return channel.displayName === event.target.innerText
@@ -54,12 +110,12 @@ channelsList.addEventListener('click', function (event) {
     selectedChannelButton.classList.remove('selectedChannel')
     event.target.classList.add('selectedChannel')
     event.target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' })
-})
-const selectedChannelButton = channelsList.querySelector('.selectedChannel')
-selectedChannelButton.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' })
+}) */
+/* const selectedChannelButton = channelsList.querySelector('.selectedChannel')
+selectedChannelButton.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' }) */
 
 // player
-let requesting = false
+/* let requesting = false
 let lastRequest = 0
 player.addEventListener('timeupdate', async function (event) {
     if (event.timeStamp >= lastRequest + 2000 && !requesting) {
@@ -80,108 +136,10 @@ player.addEventListener('timeupdate', async function (event) {
         }
         requesting = false
     }
-})
-
-// app
-const app = (window.app = {
-    sound: new Sound(),
-    async addNode(identifier, options = {}) {
-        const constructor = window[identifier]
-        if (!constructor) throw new Error(`${identifier} not defined.`)
-        const node = new constructor(app.sound.context, options)
-        node.controls = await getControls(node, options)
-        const visualizer = workspace.visualizers[workspace.dataset.selectedVisualizer]
-        visualizer.controls.querySelector('.controlsList').append(node.controls)
-        player.pause()
-        app.disconnect()
-        visualizer.audioGraph.push(node)
-        app.connect()
-        player.play()
-        return node
-    },
-    async addVisualizer(name, { width = 256, height = 128, left = 0, top = 0, fftSize = 256, smoothingTimeConstant = 0.5 } = {}) {
-        if (!Visualizers[name]) throw new Error(`Class ${name} not implemented.`)
-        const visualizer = new Visualizers[name](app.sound, width, height, left, top, { fftSize, smoothingTimeConstant })
-        visualizer.controls = await getControls(visualizer)
-        visualizer.connect()
-        visualizer.draw()
-        workspace.addVisualizer(visualizer)
-        return visualizer
-    },
-    connect() {
-        app.sound.connect(player)
-        for (const key in workspace.visualizers) {
-            const visualizer = workspace.visualizers[key]
-            visualizer.connect()
-            visualizer.draw()
-        }
-    },
-    disconnect() {
-        app.sound.disconnect()
-        for (const key in workspace.visualizers) {
-            const visualizer = workspace.visualizers[key]
-            visualizer.stop()
-            visualizer.disconnect()
-        }
-    },
-    showControls(identifier) {
-        controls.textContent = ''
-        controls.append(workspace.visualizers[identifier].controls)
-    },
-    async showAddNode(identifier) {
-        const resp = await fetch(`./controls/addNode?identifier=${identifier}`)
-        const html = await resp.text()
-        document.body.firstElementChild.insertAdjacentHTML('afterend', html)
-        const addNode = document.querySelector('.addNode')
-        addEvents(addNode, identifier)
-        addNode.addEventListener('add', function (event) {
-            app.addNode(identifier, event.detail)
-        })
-    },
-    async setup() {
-        // connect
-        app.sound.connect(player)
-        // setup event handlers
-        const menu = document.getElementById('menu')
-        menu.addEventListener('click', function (event) {
-            if (event.target.hasAttribute('data-action')) {
-                const { action } = event.target.dataset
-                const [name, type, identifier] = action.split('-')
-                //console.log(name, type, identifier)
-                switch (name) {
-                    case 'add':
-                        if (type === 'visualizer') {
-                            app.addVisualizer(identifier)
-                        } else {
-                            app.showAddNode(identifier)
-                            //app.addNode(identifier, { type: 'highpass', frequency: 11200 })
-                        }
-                        break
-                    case 'del':
-                        // delete selected visualizer
-                        workspace.removeVisualizer(workspace.dataset.selectedVisualizer)
-                        break
-                }
-            }
-        })
-        workspace.addEventListener('click', function (event) {
-            if (event.target.hasAttribute('data-action')) {
-                const { action } = event.target.dataset
-                const [name, type, identifier] = action.split('-')
-                //console.log(name, type, identifier)
-                switch (name) {
-                    case 'click':
-                        app.showControls(identifier)
-                        workspace.selectVisualizer(identifier)
-                        break
-                }
-            }
-        })
-    }
-})
+}) */
 
 // workspace
-workspace.dataset.selectedVisualizer = ''
+/* workspace.dataset.selectedVisualizer = ''
 workspace.visualizers = {}
 workspace.nextId = 0
 workspace.addVisualizer = function (visualizer) {
@@ -205,18 +163,172 @@ workspace.selectVisualizer = function (identifier) {
     workspace.visualizers[identifier].screen.container.classList.add('selectedVisualizer')
     workspace.dataset.selectedVisualizer = identifier
 }
+workspace.showControls = function (identifier) {
+    controls.textContent = ''
+    controls.append(workspace.visualizers[identifier].controls)
+}
+
+// controls
+controls.dataset.selectedNode = ''
+controls.selectNode = function (identifier) {
+    const selectedVisualizer = workspace.visualizers[workspace.dataset.selectedVisualizer]
+    const selectedNode = selectedVisualizer.controls.querySelector('.selectedNode')
+    if (selectedNode) selectedNode.classList.remove('selectedNode')
+    const control = selectedVisualizer.controls.querySelector(`#${identifier}`)
+    control.classList.add('selectedNode')
+    controls.dataset.selectedNode = identifier
+} */
+
+// app
+const app = (window.app = {
+    //sound: new Sound(),
+    async addNode(identifier, options = {}) {
+        // construct node
+        const constructor = window[identifier]
+        if (!constructor) throw new Error(`${identifier} not defined.`)
+        const node = new constructor(app.sound.context, options)
+        // get node controls
+        node.controls = await getControls(node, options)
+        const visualizer = workspace.visualizers[workspace.dataset.selectedVisualizer]
+        visualizer.controls.querySelector('.controlsList').append(node.controls)
+        // update audio graph
+        player.pause()
+        app.disconnect()
+        visualizer.audioGraph.push(node)
+        app.connect()
+        player.play()
+        return node
+    },
+    async addVisualizer(name, { width = 256, height = 128, left = 0, top = 0, fftSize = 256, smoothingTimeConstant = 0.5 } = {}) {
+        if (!Visualizers[name]) throw new Error(`Class ${name} not implemented.`)
+        const visualizer = new Visualizers[name](app.sound, width, height, left, top, { fftSize, smoothingTimeConstant })
+        visualizer.controls = await getControls(visualizer)
+        visualizer.connect()
+        visualizer.draw()
+        visualizer.id = workspace.nextId
+        workspace.addVisualizer(visualizer)
+        return visualizer
+    },
+    connect() {
+        app.sound.connect(player)
+        for (const key in workspace.visualizers) {
+            const visualizer = workspace.visualizers[key]
+            visualizer.connect()
+            visualizer.draw()
+        }
+    },
+    deleteNode(identifier) {
+        // remove control
+        const visualizer = workspace.visualizers[workspace.dataset.selectedVisualizer]
+        const control = visualizer.controls.querySelector(`#${identifier}`)
+        visualizer.controls.querySelector('.controlsList').removeChild(control)
+        // update audio graph
+        const extractor = /([a-z]*)([0-9]*)/i
+        const [match, className, count] = extractor.exec(identifier)
+        console.log(className, count)
+        let counter = 0
+        const index = visualizer.audioGraph.reduce(function (accu, curr, index) {
+            console.log(curr.constructor.name, className)
+            if (curr.constructor.name === className) {
+                counter++
+                if (counter === parseInt(count)) return index
+            }
+            return accu
+        }, -1)
+        console.log(index)
+
+        /* player.pause()
+        app.disconnect()
+        visualizer.audioGraph.splice(index, 1)
+        app.connect()
+        player.play() */
+    },
+    disconnect() {
+        app.sound.disconnect()
+        for (const key in workspace.visualizers) {
+            const visualizer = workspace.visualizers[key]
+            visualizer.stop()
+            visualizer.disconnect()
+        }
+    },
+    async showAddNode(identifier) {
+        const resp = await fetch(`./controls/addNode?identifier=${identifier}`)
+        const html = await resp.text()
+        //document.body.firstElementChild.insertAdjacentHTML('afterend', html)
+        workspace.insertAdjacentHTML('beforeend', html)
+        const addNode = workspace.querySelector('.addNode')
+        addEvents(addNode, identifier)
+        addNode.addEventListener('add', function (event) {
+            app.addNode(identifier, event.detail)
+        })
+    },
+    async setup() {
+        // connect
+        app.sound.connect(player)
+        // setup event handlers
+        const menu = document.getElementById('menu')
+        menu.addEventListener('click', function (event) {
+            if (event.target.hasAttribute('data-action')) {
+                event.preventDefault()
+                const { action } = event.target.dataset
+                const [name, type, identifier] = action.split('-')
+                //console.log(name, type, identifier)
+                switch (name) {
+                    case 'add':
+                        if (type === 'visualizer') app.addVisualizer(identifier)
+                        if (type === 'node') app.showAddNode(identifier)
+                        break
+                    case 'del':
+                        // delete selected visualizer
+                        if (type === 'visualizer') workspace.removeVisualizer(workspace.dataset.selectedVisualizer)
+                        if (type === 'node') {
+                            app.deleteNode(controls.dataset.selectedNode)
+                        }
+                        break
+                }
+            }
+        })
+        workspace.addEventListener('click', function (event) {
+            if (event.target.hasAttribute('data-action')) {
+                event.preventDefault()
+                const { action } = event.target.dataset
+                const [name, type, identifier] = action.split('-')
+                //console.log(name, type, identifier)
+                switch (name) {
+                    case 'click':
+                        workspace.showControls(identifier)
+                        workspace.selectVisualizer(identifier)
+                        break
+                }
+            }
+        })
+        controls.addEventListener('click', function (event) {
+            if (event.target.hasAttribute('data-action')) {
+                event.preventDefault()
+                const { action } = event.target.dataset
+                const [name, visualizer, identifier] = action.split('-')
+                //console.log(name, type, identifier)
+                switch (name) {
+                    case 'click':
+                        controls.selectNode(identifier)
+                        break
+                }
+            }
+        })
+    }
+})
 
 async function main() {
     await app.setup()
-    await app.addVisualizer('STFT', { width: 512, height: 256, fftSize: 1024 })
+    /* await app.addVisualizer('STFT', { width: 512, height: 256, fftSize: 1024 })
     await app.addVisualizer('FFT', { top: 256 })
     await app.addVisualizer('Meter', { left: 256, top: 256 })
-    app.showControls(0)
-    workspace.selectVisualizer(0)
-    player.play()
+    workspace.showControls(0)
+    workspace.selectVisualizer(0) */
+    //player.play()
 }
 
 // startup
-main().catch(function (err) {
+/* main().catch(function (err) {
     console.error(err)
-})
+}) */

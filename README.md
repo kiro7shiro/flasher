@@ -12,3 +12,7 @@ web audio visualizer
 - a visualizer is a class thats analysis audio data and constructs graphical data from it
 - the constructed data can be shown on a canvas
 - the constructed data can be send to other visualizers
+
+## TODO
+
+- select source: file, stream, capture element

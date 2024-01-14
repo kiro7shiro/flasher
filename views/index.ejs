@@ -1,47 +1,42 @@
-<div class="w3-container w3-gray">
-    <div class="w3-row w3-padding-16">
-        <%- include('controls/Menu') %>
+<!-- Page Content -->
+<div class="w3-padding-large" id="main">
 
-        <div class="w3-container w3-quarter">
-            <h5>channels</h5>
+    <!-- Header/Home -->
+    <header class="w3-container w3-padding-16 w3-center w3-black" id="home">
+        <h1 class="w3-jumbo">Flasher</h1>
+        <hr style="width:80%;left: 10%;position: relative;" class="w3-opacity">
+    </header>
+
+    <div class="w3-row w3-padding-16 w3-light-grey" style="padding-left: 16px;">
+        <!-- Channels Section -->
+        <div class="w3-quarter">
+            <!-- <span class="w3-xlarge">Channels</span><br> -->
             <%- include('controls/channels', { lastChannel, channels }) %>
         </div>
-
-        <div class="w3-container w3-rest">
-            <h5>player</h5>
-            <div class="w3-container">
-                <div class="w3-left">
-                    <p id="currentTrack">test</p>
-                </div>
-                <div class="w3-right">
-                    <img id="trackImage" src="" alt="">
-                </div>
-            </div>
-            <audio class="player" id="player" src="<%= lastChannel.streams[0].url %>" controls
-                crossorigin="anonymous"></audio>
+        <!-- Player Section -->
+        <div class="w3-rest" style="padding-left: 16px;padding-right: 16px;">
+            <!-- <span class="w3-xlarge">Player</span><br> -->
+            <%- include('controls/Player', { lastChannel }) %>
         </div>
-
     </div>
 
-    <div class="w3-row w3-padding-16">
+    <!-- Workspace Section -->
+    <div id="workspaceSection" class="w3-justify w3-text-grey w3-padding-16">
+        <h3 class="w3-padding-16 w3-text-light-grey">Workspace</h3>
 
-        <div class="w3-container w3-quarter">
-            <h5>controls</h5>
+        <%- include('controls/Menu') %>
 
-            <div id="controls"></div>
-        </div>
-
-        <div class="w3-container w3-rest">
-            <h5>workspace</h5>
-            <div id="workspace">
+        <hr style="width:100%" class="w3-opacity">
+        <div class="w3-row w3-padding-16">
+            <div class="w3-quarter">
+                <div id="controlsList"></div>
+            </div>
+            <div class="w3-rest" style="padding-left: 16px;">
+                <div id="workspace"></div>
             </div>
         </div>
 
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="ejs/ejs.js"></script>
-    <script type="module" src="bin/clubber.js"></script>
-    <script src="bin/ejs.js"></script>
-    <script type="module" src="client/index.js"></script>
 </div>
+<!-- END PAGE CONTENT -->

@@ -11,7 +11,7 @@ import { Grid } from './Grid.js'
  * Get the html controls for a visualizer or an audio node.
  * Adds events, too.
  * @param {Visualizer|AudioNode} instance the visualizer or node to get the controls for
- * @returns {HTMLDivElement}
+ * @returns {HTMLElement}
  */
 export async function getControls(instance, options = {}) {
     const className = instance.constructor.name
@@ -31,9 +31,22 @@ export async function getControls(instance, options = {}) {
     return controls
 }
 
+/**
+ * Add events to html and inserts the html into the page
+ * @param {Visualizer|AudioNode} instance
+ * @param {String} html
+ * @returns {HTMLElement}
+ */
 export function addEvents(instance, html) {
-    const container = document.createElement('div')
-    container.innerHTML = html
+    const findID = /id="([a-zA-Z0-9]*)"/i
+    const [match, id] = findID.exec(html)
+    const controls = document.querySelector('#controls')
+    controls.insertAdjacentHTML('beforeend', html)
+    const container = controls.querySelector(`#${id}`)
+    container.addEventListener('click', function (event) {
+        const controlId = event.target.closest('div[id]').id
+        event.target.dataset.action = `click-${id}-${controlId}`
+    })
     const analyserEvents = audioNodesEvents['AnalyserNode']
     switch (true) {
         case instance instanceof AudioNode:
@@ -47,6 +60,11 @@ export function addEvents(instance, html) {
     return container
 }
 
+/**
+ * Select events based on instance className
+ * @param {Visualizer|AudioNode} instance
+ * @param {HTMLElement} container
+ */
 export function addAudioNodeEvents(instance, container) {
     const className = instance.constructor.name
     const events = audioNodesEvents[className]
@@ -117,7 +135,6 @@ const audioNodesEvents = {
         gainValue.innerText = `${filter.gain.value} dB`
     },
     DelayNode: function (delay, container) {
-        console.log(delay)
         const delayValue = container.querySelector('#delay')
         delayValue.addEventListener('change', function (event) {
             delay.delayTime.value = event.target.value
@@ -140,6 +157,7 @@ const audioNodesEvents = {
  * Add events for each node in the audioGraph of a visualizer
  * @param {Visualizer} visualizer the visualizer to bind the events
  * @param {HTMLDivElement} container the html container to wich the events are added
+ * @deprecated
  */
 export function addAudioGraphEvents(visualizer, container) {
     for (let nCnt = 0; nCnt < visualizer.audioGraph.length; nCnt++) {
@@ -156,6 +174,7 @@ export function addAudioGraphEvents(visualizer, container) {
  * Add events for a Grid.js visualizer class
  * @param {Grid} grid a grid visualizer class to bind the events
  * @param {HTMLDivElement} container the html container to wich the events are added
+ * @deprecated
  */
 export function addGridEvents(grid, container) {
     const cols = container.querySelector('#cols')

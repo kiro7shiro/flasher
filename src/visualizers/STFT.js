@@ -7,7 +7,7 @@ const timerDebugTemplate = '<div>fps: <%= frames %></div>'
  * Short time fourier transform
  */
 class STFT extends Visualizer {
-    constructor(sound, width, height, left, top, { fftSize = 256, smoothingTimeConstant = 0.5, timeframe = 250 } = {}) {
+    constructor(sound, width, height, left, top, { fftSize = 256, smoothingTimeConstant = 0.5, timeframe = 256 } = {}) {
         super(sound, width, height, left, top, { fftSize, smoothingTimeConstant })
         const { analyser, buffer, offscreen } = this
         analyser.maxDecibels = -20

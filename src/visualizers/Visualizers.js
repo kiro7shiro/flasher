@@ -5,6 +5,7 @@ import { Grid } from './Grid.js'
 import { Meter } from './Meter.js'
 import { STFT } from './STFT.js'
 import { Waveform } from './Waveform.js'
+import { LedMatrix4x8 } from './LedMatrix4x8.js'
 
 class Visualizers {
     static Bars = Bars
@@ -14,6 +15,7 @@ class Visualizers {
     static Meter = Meter
     static STFT = STFT
     static Waveform = Waveform
+    static LedMatrix4x8 = LedMatrix4x8
     static mapNumRange = function (num, inMin, inMax, outMin, outMax) {
         return ((num - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin
     }

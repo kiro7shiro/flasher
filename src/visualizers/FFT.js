@@ -101,7 +101,6 @@ class FFT extends Visualizer {
             }
         })
     }
-
     draw(timestamp) {
         const { timer } = this
         timer.delta = timestamp - timer.last
