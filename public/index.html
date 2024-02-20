@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>FLASHER 0.1</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="./styles.css">
+    <style>
+        html,
+        body,
+        h1,
+        h2,
+        h3,
+        h4,
+        h5 {
+            font-family: "Raleway", sans-serif
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Top container -->
+    <div class="w3-bar w3-top w3-black w3-large" style="z-index:4" id="app-menu">
+        <div class="w3-bar-item w3-button w3-hover-none w3-hover-text-white"> &nbsp;FLASHER 0.1</div>
+        <button class="w3-bar-item w3-button w3-hide-large w3-hover-none w3-hover-text-light-grey"
+            data-action="sidebar-open"><i data-action="sidebar-open" class="fa fa-bars"></i> &nbsp;Menu</button>
+        <span class="w3-bar-item w3-right"><i class="flasher w3-xlarge fa fa-bolt"></i></span>
+    </div>
+    <br>
+    <!-- Sidebar/menu -->
+    <nav class="w3-sidebar w3-collapse w3-black w3-animate-left" style="z-index:3;width:300px;" id="sidebar"><br>
+        <div class="w3-bar-block">
+            <a href="#" class="w3-bar-item w3-button w3-padding w3-hide-large w3-black w3-hover-gray"
+                data-action="sidebar-close" title="close menu"><i class="fa fa-remove fa-fw"></i>&nbsp; Close Menu</a>
+            <a href="#" data-action="overview-click" class="w3-bar-item w3-button w3-padding w3-black"><i
+                    class="fa fa-object-group fa-fw"></i>&nbsp;
+                Workspace</a>
+            <a href="#" data-action="overview-click" class="w3-bar-item w3-button w3-padding w3-black"><i
+                    class="fa fa-cog fa-fw"></i>&nbsp;
+                Settings</a>
+        </div>
+    </nav>
+    <!-- Overlay effect when opening sidebar on small screens -->
+    <div class="w3-overlay w3-hide-large w3-animate-opacity" style="cursor:pointer" title="close side menu"
+        id="overlay"></div>
+    <!-- !PAGE CONTENT! -->
+    <div class="w3-main" style="margin-left:300px;margin-top:43px;">
+        <div class="w3-row">
+            <div id="sources-container" class="w3-quarter">
+                <!-- sources is added at runtime here -->
+            </div>
+            <div class="w3-rest">
+                <div class="w3-container w3-row w3-margin-bottom">
+                    <div id="player-container" class="w3-container w3-black w3-padding-16">
+                        <div class="w3-left"><i class="fa fa-play w3-xxlarge"></i></div>
+                        <!-- player is added at runtime here -->
+                    </div>
+                </div>
+                <div id="visualizers-menu-container" class="w3-container w3-row w3-margin-bottom">
+                    <!-- visualizers-menu is added at runtime here -->
+                </div>
+                <div id="visualizers-container" class="w3-container w3-row w3-margin-bottom">
+                    <!-- visualizers are added at runtime here -->
+                </div>
+            </div>
+        </div>
+        <!-- Footer -->
+        <footer class="w3-container w3-bottom w3-padding-16 w3-text-white" style="z-index: -1;">
+            <hr>
+            <p>Powered by <a href="https://www.w3schools.com/w3css/default.asp" target="_blank">w3.css</a></p>
+        </footer>
+        <!-- End page content -->
+    </div>
+    <!-- Test -->
+    <!--  -->
+    <!-- logic -->
+    <script src="/bin/ejs.js"></script>
+    <script src="/bin/jsmediatags.js"></script>
+    <script src="https://colorjs.io/dist/color.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module" src="./index.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,37 @@
+<li>
+    <% if (locals.id===null || locals.id===undefined) locals.id='filter' %>
+    <% if (locals.type===null || locals.type===undefined) locals.type='none' %>
+    <div id="<%= id %>" class="w3-row">
+        <div class="w3-padding">
+            <%= type %>
+        </div>
+        <div class="w3-row w3-padding">
+            <div class="w3-col" style="width:60px">freq</div>
+            <div class="w3-rest">
+                <%- await include('Slider', { id: 'frequency' , min: '20' , max: '22000' , value: '0' ,
+                    action:'set-filter', detail: 'frequency' }) %>
+            </div>
+        </div>
+        <div class="w3-row w3-padding">
+            <div class="w3-col" style="width:60px">detune</div>
+            <div class="w3-rest">
+                <%- await include('Slider', { id: 'detune' , min: '0' , max: '1' , value: '0' , step: 0.05 ,
+                    action:'set-filter', detail: 'detune' }) %>
+            </div>
+        </div>
+        <div class="w3-row w3-padding">
+            <div class="w3-col" style="width:60px">Q</div>
+            <div class="w3-rest">
+                <%- await include('Slider', { id: 'Q' , min: '-0.001' , max: '1000' , value: '0' ,
+                    action:'set-filter', detail: 'Q' }) %>
+            </div>
+        </div>
+        <div class="w3-row w3-padding">
+            <div class="w3-col" style="width:60px">gain</div>
+            <div class="w3-rest">
+                <%- await include('Slider', { id: 'gain' , min: '-40' , max: '40' , value: '0' ,
+                    action:'set-filter', detail: 'gain' }) %>
+            </div>
+        </div>
+    </div>
+</li>

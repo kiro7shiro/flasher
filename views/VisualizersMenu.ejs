@@ -1,0 +1,24 @@
+<div class="w3-bar w3-black" id="visualizers-menu">
+    <% if (!locals.visualizers) locals.visualizers=['not implemented'] %>
+    <% if (!locals.nodes) locals.nodes=['not implemented'] %>
+    <div class="w3-dropdown-hover w3-black">
+        <button class="w3-button"><i class="fa fa-star-half-o"></i> &nbsp;Visualizers</button>
+        <div class="w3-dropdown-content w3-bar-block w3-border" style="z-index:4">
+            <% visualizers.forEach(function name(visualizer) { %>
+                <a data-action="add-visualizer" data-detail="<%= visualizer %>" class="w3-bar-item w3-button">
+                    <%= visualizer %>
+                </a>
+            <% }) %>
+        </div>
+    </div>
+    <div class="w3-dropdown-hover w3-black">
+        <button class="w3-button"><i class="fa fa-sliders"></i> &nbsp;Nodes</button>
+        <div class="w3-dropdown-content w3-bar-block w3-border" style="z-index:4">
+            <% nodes.forEach(function name(node) { %>
+                <a data-action="add-node" data-detail="<%= node %>" class="w3-bar-item w3-button">
+                    <%= node %>
+                </a>
+            <% }) %>
+        </div>
+    </div>
+</div>

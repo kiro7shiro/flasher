@@ -1,0 +1,11 @@
+<div class="w3-container">
+    <%- await include('visualizers/header', {title: 'Grid' }) %>
+    <!-- analyzer controls always on top -->
+    <ul id="nodes-container" class="w3-ul">
+        <%- await include('nodes/AnalyzerNode', locals) %>
+        <!-- stack node controls on top of each other -->
+    </ul>
+    <div id="screen-container" class="w3-container w3-padding-16">
+        <!-- screen container -->
+    </div>
+</div>

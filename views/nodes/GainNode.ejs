@@ -1,0 +1,15 @@
+<li>
+    <% if (locals.id===null || locals.id===undefined) locals.id='volume' %>
+    <div id="<%= id %>" class="w3-row">
+        <div class="w3-padding">
+            gain
+        </div>
+        <div class="w3-row w3-padding">
+            <div class="w3-col" style="width:60px">&nbsp;</div>
+            <div class="w3-rest">
+                <%- await include('Slider', { id: 'gain' , min: '-40' , max: '40' , value: '0' ,
+                    action:'set-gain' }) %>
+            </div>
+        </div>
+    </div>
+</li>

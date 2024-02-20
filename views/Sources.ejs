@@ -1,0 +1,20 @@
+<div class="w3-row-padding w3-black">
+    <% if(!locals.musicFiles) locals.musicFiles=[] %>
+    <div class="w3-row">
+        <div class="w3-container w3-padding-16">
+            <i class="fa fa-file-audio-o w3-xxxlarge"></i>
+        </div>
+    </div>
+    <div class="w3-row">
+        <div class="w3-container w3-padding-16">
+            <ul class="w3-ul" style="overflow: hidden;">
+            <% for (let mCnt=0; mCnt < musicFiles.length; mCnt++) { %>
+            <% const file=musicFiles[mCnt] %>
+                <li class="w3-button" data-action="select" data-detail="<%= file %>">
+                    <%= file %>
+                </li>
+            <% } %>
+            </ul>
+        </div>
+    </div>
+</div>
