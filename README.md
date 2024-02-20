@@ -4,7 +4,8 @@ Flasher is a program for making audio visualizers in the browser. It's main goal
 
 Currently this is a proof of concept.
 
-For testing download the repository. If you have VSCode installed with the LiveServer addon. You can run the server from the 'public/index.html' file. Otherwise you have to provide your own server that needs to serve the static files noted in the '.vscode/setting.json' file.
+To test download the repository. If you installed VSCode with the LiveServer addon. You can run the server from the 'public/index.html' file. Otherwise you'll need to deploy your own server, which will have to to serve the static files listed in the '.vscode/setting.json' file.
+If you put some music files in the 'public/music' folder. Filenames should appear after the update. Now you can play around. Be aware that that's not very much at this point. Any help is appreciated.
 
 TODO : 
 - memory management, remember memory is hardware!
