@@ -1,8 +1,8 @@
 {
-  "name": "js-boilerplate",
+  "name": "flasher",
   "version": "0.1.0",
-  "description": "",
-  "main": "index.js",
+  "description": "make colors and lights dance to the music",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
