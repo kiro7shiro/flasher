@@ -122,7 +122,7 @@ class FFT {
         //
         const nodesContainer = this.element.querySelector('#nodes-container')
         nodesContainer.style.display = 'none'
-        this.control.on('toggle-controls', function (event) {
+        this.control.on('toggle-controls', function () {
             if (nodesContainer.style.display === 'none') {
                 nodesContainer.style.display = 'block'
             } else {

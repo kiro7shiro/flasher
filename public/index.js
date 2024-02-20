@@ -46,11 +46,6 @@ async function setup() {
         sidebar.hide()
         overlay.hide()
     })
-    sidebar.on('overview-click', function () {
-        sidebar.hide()
-        overlay.show()
-        addFilterMenu.show()
-    })
     // player
     const player = await construct('Player')
     sound.connect(player.audio)

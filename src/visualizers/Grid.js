@@ -37,7 +37,6 @@ class Grid {
         this.cellsWHalf = this.cellsWidth / 2
         this.cellsHHalf = this.cellsHeight / 2
         this.cellsMinRadius = Math.min(this.cellsHHalf, this.cellsWHalf)
-        this.cellsMaxLength = Math.max(this.cellsHeight, this.cellsWidth)
         this.cells = new Array(this.rows * this.cols)
         //this.cellsMap = new Array(this.cells.length).fill(0).map((_, index) => index)
         //this.cellsMap = new Array(this.cells.length).fill(0).map((_, index) => this.cells.length - index - 1)
@@ -123,7 +122,6 @@ class Grid {
         const screenContainer = this.element.querySelector('#screen-container')
         screenContainer.append(this.screen.container)
         //
-        this.lastDraw = 0
         this.timer = {
             delta: 0,
             frames: 0,
