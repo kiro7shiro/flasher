@@ -1,8 +1,12 @@
 ### FLASHER
 
+Flasher is a program for making audio visualizers in the browser. It's main goal is to send audio information to different types of visualizers including hardware ones. To make colors and lights dance to the music. :)
+
+Currently this is a proof of concept.
+
 TODO : 
 - memory management, remember memory is hardware!
-- make a data routing server that connects the app to hardware devices
+- make a data routing server that connects the client app to hardware devices
 - send visualizer data to hardware devices
 - DONE : basic client app
 - DONE : load audio from files
@@ -17,7 +21,3 @@ TODO :
 - make a add visualizer menu
 - connect video and audio elements
 - add scrolling text for long title names
-
-Flasher is a program for making audio visualizers in the browser. It's main goal is to send audio information to different types of visualizers including hardware ones. To make colors and lights dance to the music. :)
-
-Currently this is in the phase: proof of concept.
