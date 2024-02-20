@@ -1,0 +1,9 @@
+{
+    "liveServer.settings.mount": [
+        ["/", "/public"],
+        ["/bin", "/bin"],
+        ["/src", "/src"],
+        ["/views", "/views"]
+    ],
+    "liveServer.settings.port": 5501
+}
