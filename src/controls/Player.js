@@ -1,7 +1,7 @@
 class Player {
     constructor(element) {
         this.element = element
-        this.player = element.querySelector('audio')
+        this.source = element.querySelector('audio')
         this.currentTrack = element.querySelector('#currentTrack')
         this.trackImage = element.querySelector('#trackImage')
 
@@ -9,12 +9,18 @@ class Player {
         this.lastRequest = 0
     }
     on(event, handler) {
-        if (!this.player) return
-        this.player.addEventListener(event, handler)
+        if (!this.source) return
+        this.source.addEventListener(event, handler)
     }
     off(event, handler) {
-        if (!this.player) return
-        this.player.removeEventListener(event, handler)
+        if (!this.source) return
+        this.source.removeEventListener(event, handler)
+    }
+    pause() {
+        this.source.pause()
+    }
+    play() {
+        this.source.play()
     }
 }
 

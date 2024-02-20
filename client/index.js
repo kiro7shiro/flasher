@@ -16,14 +16,72 @@
 // 160  * 90
 // 80   * 45
 
-/* import { Sound } from '../src/Sound.js'
-import { getControls } from '../src/visualizers/controls.js'
-import { addEvents } from '../src/controls/events.js'
-import { Visualizers } from '../src/visualizers/Visualizers.js' */
+/* import { addEvents } from '../src/controls/events.js' */
 
-import { ChannelsList } from "../src/controls/ChannelsList.js"
-import { Player } from "../src/controls/Player.js"
-import { Workspace } from "../src/controls/Workspace.js"
+import { Sound } from '../src/Sound.js'
+import { Visualizers } from '../src/visualizers/Visualizers.js'
+import { getControls } from '../src/visualizers/controls.js'
+import { ChannelsList } from '../src/controls/ChannelsList.js'
+import { Player } from '../src/controls/Player.js'
+import { Workspace } from '../src/controls/Workspace.js'
+
+const sound = new Sound()
+
+const app = {
+    async addNode(identifier, options = {}) {
+        // construct node
+        const constructor = window[identifier]
+        if (!constructor) throw new Error(`${identifier} not defined.`)
+        const node = new constructor(sound.context, options)
+        // get node controls
+        node.controls = await getControls(node, options)
+        const visualizer = workspace.visualizers[workspace.selectedVisualizer]
+        visualizer.controls.querySelector('.controlsList').append(node.controls)
+        // update audio graph
+        player.pause()
+        app.disconnect()
+        visualizer.audioGraph.push(node)
+        app.connect()
+        player.play()
+        return node
+    },
+    async addVisualizer(className, { width = 256, height = 128, left = 0, top = 0, fftSize = 256, smoothingTimeConstant = 0.5 } = {}) {
+        const constructor = Visualizers[className]
+        if (!constructor) throw new Error(`Class ${className} not implemented.`)
+        const visualizer = new constructor(sound, width, height, left, top, { fftSize, smoothingTimeConstant })
+        visualizer.controls = await getControls(visualizer)
+        visualizer.connect()
+        visualizer.draw()
+        return visualizer
+    },
+    connect() {
+        sound.connect(player.source)
+        for (const key in workspace.visualizers) {
+            const visualizer = workspace.visualizers[key]
+            visualizer.connect()
+            visualizer.draw()
+        }
+    },
+    disconnect() {
+        sound.disconnect()
+        for (const key in workspace.visualizers) {
+            const visualizer = workspace.visualizers[key]
+            visualizer.stop()
+            visualizer.disconnect()
+        }
+    },
+    async showAddNode(identifier) {
+        const resp = await fetch(`./controls/addNode?identifier=${identifier}`)
+        const html = await resp.text()
+        //document.body.firstElementChild.insertAdjacentHTML('afterend', html)
+        workspace.element.insertAdjacentHTML('beforeend', html)
+        const addNode = workspace.element.querySelector('.addNode')
+        addEvents(addNode, identifier)
+        addNode.addEventListener('add', function (event) {
+            app.addNode(identifier, event.detail)
+        })
+    }
+}
 
 const channelsList = new ChannelsList(document.querySelector('#channelsList'))
 channelsList.on('select', function (event) {
@@ -32,6 +90,7 @@ channelsList.on('select', function (event) {
 })
 
 const player = new Player(document.querySelector('#player'))
+sound.connect(player.source)
 player.on('timeupdate', async function (event) {
     if (event.timeStamp >= player.lastRequest + 2000 && !player.requesting) {
         player.requesting = true
@@ -54,19 +113,33 @@ player.on('timeupdate', async function (event) {
 })
 
 const workspace = new Workspace(document.querySelector('#workspaceSection'))
-workspace.on('add-visualizer', function (event) {
-    console.log(event)
+workspace.on('add-visualizer', async function (event) {
+    const { detail: className } = event
+    const visualizer = await app.addVisualizer(className)
+    workspace.addVisualizer(visualizer)
+    const id = workspace.visualizersNextId - 1
+    workspace.selectVisualizer(id)
+    workspace.showControls(id)
 })
-workspace.on('del-visualizer', function (event) {
-    console.log(event)
+workspace.on('select-visualizer', function (event) {
+    const { detail: id } = event
+    workspace.selectVisualizer(id)
+    workspace.showControls(id)
+})
+workspace.on('del-visualizer', function () {
+    const visualizer = workspace.visualizers[workspace.selectedVisualizer]
+    workspace.delVisualizer(visualizer)
+    workspace.clearControls()
+    delete workspace.visualizers[workspace.selectedVisualizer]
 })
 workspace.on('add-node', function (event) {
     console.log(event)
 })
-workspace.on('del-node', function (event) {
+workspace.on('del-node', async function (event) {
+    const { detail: className } = event
+    await app.addNode(className, {})
     console.log(event)
 })
-console.log(workspace)
 
 // TODO : make own classes for the app related objects
 
@@ -180,7 +253,7 @@ controls.selectNode = function (identifier) {
 } */
 
 // app
-const app = (window.app = {
+const app2 = (window.app2 = {
     //sound: new Sound(),
     async addNode(identifier, options = {}) {
         // construct node
@@ -205,8 +278,6 @@ const app = (window.app = {
         visualizer.controls = await getControls(visualizer)
         visualizer.connect()
         visualizer.draw()
-        visualizer.id = workspace.nextId
-        workspace.addVisualizer(visualizer)
         return visualizer
     },
     connect() {

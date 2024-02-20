@@ -1,6 +1,6 @@
 /**
- * The Screen class provides confience functions for interacting with the canvas
- * and proivdes html controls for interaction
+ * The Screen class provides convenience functions for interacting with the canvas
+ * and provides html controls for interaction
  */
 class Screen {
     constructor(width, height, left = 0, top = 0) {

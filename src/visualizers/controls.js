@@ -40,9 +40,10 @@ export async function getControls(instance, options = {}) {
 export function addEvents(instance, html) {
     const findID = /id="([a-zA-Z0-9]*)"/i
     const [match, id] = findID.exec(html)
-    const controls = document.querySelector('#controls')
+    const controls = document.querySelector('#controlsList')
     controls.insertAdjacentHTML('beforeend', html)
     const container = controls.querySelector(`#${id}`)
+    container.remove()
     container.addEventListener('click', function (event) {
         const controlId = event.target.closest('div[id]').id
         event.target.dataset.action = `click-${id}-${controlId}`
