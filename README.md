@@ -1,8 +1,11 @@
 ### FLASHER
 
-Flasher is a program for making audio visualizers in the browser. It's main goal is to send audio information to different types of visualizers including hardware ones. To make colors and lights dance to the music. :)
-
 Currently this is a proof of concept.
+
+Flasher is a program for making audio visualizers in the browser. It's main goal is to send audio information to different types of visualizers including hardware ones. To make colors and lights dance to the music. :)
+The main idea is to change the audio data with AudioNodes to accomplish different behaviors of the visualization. The core component is the WebAudioApi AnalyzerNode which generates the basic fft analysis needed for interpreting the currently played music.
+To achieve that each visualizer has an 'audioGraph' array which holds references to the attached AudioNodes. When the visualizer is connected to the sound source first all of it's audio graph nodes are connected. In the order in which they are stored in the array. The last node in the chain is always the analyzer. Now the audio data can be changed before it is been analyzed. That enables the ability to change the visualization while the music is playing.
+Each visualizer performs it's own interpretation of the resulting fft analysis. It comes with a screen class attached that wrapped's around a canvas element. This element is used to draw a visualization on the screen.
 
 To test download the repository. If you installed VSCode with the LiveServer addon. You can run the server from the 'public/index.html' file. Otherwise you'll need to deploy your own server, which will have to to serve the static files listed in the '.vscode/setting.json' file.
 If you put some music files in the 'public/music' folder. Filenames should appear after the update. Now you can play around. Be aware that that's not very much at this point. Any help is appreciated.
@@ -24,3 +27,4 @@ TODO :
 - make a add visualizer menu
 - connect video and audio elements
 - add scrolling text for long title names
+- bpm detection
