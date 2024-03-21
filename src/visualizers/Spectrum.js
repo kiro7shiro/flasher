@@ -1,10 +1,10 @@
 import { Control } from '../Control.js'
 import { Screen } from './Screen.js'
-import * as nodes from '../nodes/index.js'
+import * as nodes from '../nodes/nodes.js'
 
 const timerDebugTemplate = '<div>fps: <%= fps %></div><div>delta: <%= delta.toFixed(2) %></div>'
 
-class STFT {
+class Spectrum {
     constructor(source, { sound, width, height, fftSize = 256, smoothingTimeConstant = 0.5, timeframe = 256 } = {}) {
         //
         if (!sound) throw new Error('A sound instance must be given.')
@@ -181,7 +181,7 @@ class STFT {
     }
 }
 
-export { STFT }
+export { Spectrum }
 
 // TODO : do peak detection elsewhere
 /* const peaks = []
