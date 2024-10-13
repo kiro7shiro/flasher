@@ -1,11 +1,11 @@
 import { Sound, construct, getMusicFiles } from '../src/index.js'
 import * as visualizers from '../src/visualizers/index.js'
 import * as nodes from '../src/nodes/index.js'
-import * as fluxfm from '../src/sources/fluxFm.js'
 
 class Application {
     constructor() {
         this.visualizers = []
+        this.resume = true
         this.selectedVisualizer = null
     }
     connect(sound) {
@@ -29,7 +29,7 @@ class Application {
 }
 
 const app = (window.app = new Application())
-const sound = new Sound()
+const sound = (window.sound = new Sound())
 
 async function setup() {
     // overlay, sidebar, addFilterMenu
@@ -46,12 +46,16 @@ async function setup() {
         sidebar.hide()
         overlay.hide()
     })
+    sidebar.on('test', function () {
+        sidebar.hide()
+        overlay.hide()
+    })
     // player
     const player = await construct('Player')
     sound.connect(player.audio)
     const playerContainer = document.getElementById('player-container')
-    playerContainer.children[0].after(player.element)
-    if (player.history.length) {
+    playerContainer.insertAdjacentElement('afterbegin', player.element)
+    if (player.history.length && app.resume) {
         const last = player.history.last()
         player.play(last.source)
     }
@@ -87,23 +91,32 @@ async function setup() {
     })
     const visualizersContainer = document.getElementById('visualizers-container')
     visualizersMenu.on('add-visualizer', async function (event) {
-        // TODO : add visualizer menu
-        const visualizer = await construct(`visualizers/${event.detail}`, {
-            sound,
-            width: 512,
-            height: 256,
-            fftSize: 1024,
-            rows: 16,
-            cols: 32
+        const visualizerName = event.detail === 'Grid' ? event.detail : 'none'
+        const addVisualizerMenu = await construct('AddVisualizerMenu', { visualizer: visualizerName })
+        addVisualizerMenu.show()
+        addVisualizerMenu.on('close', function () {
+            addVisualizerMenu.hide()
+            overlay.hide()
         })
-        visualizersContainer.append(visualizer.element)
-        visualizers.connect(sound, visualizer)
-        app.visualizers.push(visualizer)
-        if (app.selectedVisualizer === null) app.select(visualizer)
-        visualizer.control.on('click', function () {
-            if (app.selectedVisualizer !== null) app.deselect(app.selectedVisualizer)
-            app.select(visualizer)
+        addVisualizerMenu.on('add', async function (e) {
+            // assign defaults
+            const options = Object.assign({}, { sound, visualizer: event.detail }, e.target.dataset)
+            //
+            addVisualizerMenu.hide()
+            overlay.hide()
+            addVisualizerMenu.element.remove()
+            //
+            const visualizer = await construct(`visualizers/${options.visualizer}`, options)
+            visualizersContainer.append(visualizer.element)
+            visualizers.connect(sound, visualizer)
+            app.visualizers.push(visualizer)
+            if (app.selectedVisualizer === null) app.select(visualizer)
+            visualizer.control.on('click', function () {
+                if (app.selectedVisualizer !== null) app.deselect(app.selectedVisualizer)
+                app.select(visualizer)
+            })
         })
+        document.body.insertAdjacentElement('afterbegin', addVisualizerMenu.element)
     })
     visualizersMenu.on('add-node', async function (event) {
         if (app.selectedVisualizer === null) return
@@ -120,8 +133,9 @@ async function setup() {
                     overlay.hide()
                     addFilterMenu.off('add', addHandler)
                     //
-                    const options = JSON.parse(JSON.stringify(e.target.dataset))
+                    const options = Object.assign({}, e.target.dataset)
                     const node = visualizers.addNode(app.selectedVisualizer, nodeName, options)
+                    options.id = app.selectedVisualizer.audioGraph.length
                     const nodeControls = await construct(`nodes/${nodeName}`, options)
                     nodes.addEvents(node, nodeControls)
                     visualizers.appendNodeControls(app.selectedVisualizer, nodeControls)
