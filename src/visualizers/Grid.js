@@ -1,6 +1,7 @@
+import { mapNumToRange } from '../math.js'
 import { Control } from '../Control.js'
 import { Screen } from './Screen.js'
-import * as nodes from '../nodes/index.js'
+import * as nodes from '../nodes/nodes.js'
 
 const timerDebugTemplate = '<div>fps: <%= frames %></div>'
 const pi2 = Math.PI * 2
@@ -17,12 +18,12 @@ class Grid {
         this.control = new Control(source)
         this.element = this.control.element
         //
-        this.analyser = sound.createAnalyzer({ fftSize, smoothingTimeConstant })
-        this.buffer = new Uint8Array(this.analyser.frequencyBinCount)
+        this.analyzer = sound.createAnalyzer({ fftSize, smoothingTimeConstant })
+        this.buffer = new Uint8Array(this.analyzer.frequencyBinCount)
         this.audioGraph = []
-        this.analyser.minDecibels = -80
-        this.analyser.maxDecibels = -30
-        this.analyser.smoothingTimeConstant = 0.33
+        this.analyzer.minDecibels = -80
+        this.analyzer.maxDecibels = -30
+        this.analyzer.smoothingTimeConstant = 0.33
         //
         nodes.AnalyserNode(this)
         //
@@ -37,25 +38,16 @@ class Grid {
         this.cellsWHalf = this.cellsWidth / 2
         this.cellsHHalf = this.cellsHeight / 2
         this.cellsMinRadius = Math.min(this.cellsHHalf, this.cellsWHalf)
-        this.cells = new Array(this.rows * this.cols)
+        this.cells = new Array(this.size)
+        this.decision = this.buffer.length / this.cells.length
+        this.chunkSize = Math.max(this.buffer.length, this.cells.length) / Math.min(this.buffer.length, this.cells.length)
+
         //this.cellsMap = new Array(this.cells.length).fill(0).map((_, index) => index)
         //this.cellsMap = new Array(this.cells.length).fill(0).map((_, index) => this.cells.length - index - 1)
         this.cellsMap = new Array(this.cells.length).fill(0).map((_, index) => {
-            if (index % 2 === 0) {
-                return index
-            } else {
-                return this.cells.length - index
-            }
-            
+            return index % 2 === 0 ? index : this.cells.length - index
         })
-        /* let pCnt = 0
-        const step = 2
-        this.cellsMap = new Array(this.cells.length).fill(0).map((_, index) => {
-            if (index % step === 0) {
-                pCnt = index
-            }
-            return pCnt
-        }) */
+        
         const startColor = new Color('hsl', [0, 100, 50])
         const endColor = new Color('hsl', [270, 100, 50])
         this.colors = startColor.steps(endColor, {
@@ -74,8 +66,6 @@ class Grid {
             steps: this.size,
             maxSteps: this.size
         })
-        this.chunkSize = this.buffer.length / this.colors.length
-        this.chunkLength = this.colors.length / this.buffer.length
         // preset cells
         let cnt = 0
         for (let r = 0; r < this.rows; r++) {
@@ -154,15 +144,13 @@ class Grid {
         return this.handle
     }
     update() {
-        const { analyser, buffer, cells, cellsMap, chunkLength, chunkSize } = this
+        const { analyzer: analyser, buffer, cells, cellsMap, decision, chunkSize } = this
         analyser.getByteFrequencyData(buffer)
-        // adapt buffer to the length of grid size
-        if (chunkSize > 1) {
-            // buffer is larger than grid size
-            // calculate an average for frequency bins
+        if (decision >= 1) {
+            // grid is shorter than buffer or has equal length
             cells.map(function (cell, index) {
                 const mIndex = cellsMap[index]
-                const bCnt = parseInt(mIndex * chunkSize)
+                const bCnt = Math.floor(mIndex * decision)
                 const chunk = buffer.slice(bCnt, bCnt + chunkSize)
                 const average =
                     chunk.reduce(function (sum, num) {
@@ -171,17 +159,12 @@ class Grid {
                 cell.alpha = average / 255
             })
         } else {
-            // FIX : avoid this situation by choosing a larger buffer if possible
-            //       or throw an error if not.
-            // buffer has equal length or is shorter than grid size
+            // buffer is shorter than grid
             buffer.map(function (value, index) {
                 const alpha = value / 255
-                const cIndex = parseInt(index * chunkLength)
-                const mIndex = cellsMap[cIndex]
-                const chunk = cells.slice(mIndex, mIndex + chunkLength)
-                chunk.map(function (cell) {
-                    return (cell.alpha = alpha)
-                })
+                const cIndex = index * chunkSize
+                const chunk = cellsMap.slice(cIndex, cIndex + chunkSize)
+                chunk.map(i => cells[i].alpha = alpha)
             })
         }
     }
