@@ -1,8 +1,8 @@
-<li>
+<div>
     <% if (locals.id===null || locals.id===undefined) locals.id='filter' %>
     <% if (locals.type===null || locals.type===undefined) locals.type='none' %>
     <div id="<%= id %>" class="w3-row">
-        <div class="w3-padding">
+        <div class="w3-row w3-padding">
             <%= type %>
         </div>
         <div class="w3-row w3-padding">
@@ -22,7 +22,7 @@
         <div class="w3-row w3-padding">
             <div class="w3-col" style="width:60px">Q</div>
             <div class="w3-rest">
-                <%- await include('Slider', { id: 'Q' , min: '-0.001' , max: '1000' , value: '0' ,
+                <%- await include('Slider', { id: 'Q' , min: '1' , max: '1000', step:'0.001' , value: '0' ,
                     action:'set-filter', detail: 'Q' }) %>
             </div>
         </div>
@@ -34,4 +34,4 @@
             </div>
         </div>
     </div>
-</li>
+</div>
