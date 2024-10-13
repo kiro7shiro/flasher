@@ -7,10 +7,10 @@
     </div>
     <div class="w3-row">
         <div class="w3-container w3-padding-16">
-            <ul class="w3-ul" style="overflow: hidden;">
+            <ul class="sources-list w3-ul w3-small">
             <% for (let mCnt=0; mCnt < musicFiles.length; mCnt++) { %>
             <% const file=musicFiles[mCnt] %>
-                <li class="w3-button" data-action="select" data-detail="<%= file %>">
+                <li class="sources-list-item w3-button" data-action="select" data-detail="<%= file %>">
                     <%= file %>
                 </li>
             <% } %>
