@@ -41,8 +41,9 @@ body {
     background-color: #1b1b1b;
 }
 
-#nodes-container {
-    height: 240px;
+.audio-nodes {
+    display: none;
+    max-height: 32vh;
     overflow: scroll;
 }
 
@@ -57,16 +58,19 @@ body {
     z-index: 10;
 }
 
+.addVisualizerMenu {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-right: -50%;
+    width: 400px;
+    height: 400px;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+}
+
 .flasher {
     animation: colorRotate 2s infinite;
-}
-@keyframes pulse {
-    0% {
-        color: #001f3f;
-    }
-    100% {
-        color: #ff4136;
-    }
 }
 @keyframes colorRotate {
     from {
@@ -85,24 +89,16 @@ body {
         color: #6666ff;
     }
 }
-@keyframes colorRotateBack {
-    from {
-        background: #6666ff;
-    }
-    10% {
-        background: #0099ff;
-    }
-    50% {
-        background: #00ff00;
-    }
-    75% {
-        background: #ff3399;
-    }
-    100% {
-        background: #6666ff;
-    }
-}
 
 .selected-visualizer {
     border: 1px solid #e8e6e3;
+}
+
+.sources-list {
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+.sources-list-item {
+    width: 300px;
 }
