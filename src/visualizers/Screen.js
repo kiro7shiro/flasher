@@ -1,11 +1,19 @@
 /**
- * The Screen class provides convenience functions for interacting with the canvas
- * and provides html controls for interaction
+ * The Screen class provides convenience functions for a canvas element
  */
 class Screen {
+    /**
+     * Creates a new Screen.
+     *
+     * @param {number} width - width of the screen
+     * @param {number} height - height of the screen
+     * @param {number} [left=0] - left position of the screen
+     * @param {number} [top=0] - top position of the screen
+     */
     constructor(width, height, left = 0, top = 0) {
         // container
         this.container = document.createElement('div')
+        this.container.style.position = 'relative'
         // canvas and background
         this.canvas = document.createElement('canvas')
         this.background = document.createElement('canvas')
@@ -15,10 +23,9 @@ class Screen {
         this.background.style.zIndex = 1
         // debugging window
         this.debugWindow = document.createElement('div')
-        this.debugWindow.style.position = 'relative'
+        this.debugWindow.style.position = 'absolute'
         this.debugWindow.style.zIndex = 3
         this.debugWindow.style.display = 'none'
-        //this.debugWindow.style.height = height + 'px'
         this.debugWindow.style.width = `${width / 4}px`
         this.debugWindow.style.left = `${width - width / 4}px`
         this.debugWindow.style.backgroundColor = '#272727'
@@ -32,12 +39,8 @@ class Screen {
         this.height = height
         this.left = left
         this.top = top
-        // dragging
-        this.isDragging = false
-        this.offsetX = 0
-        this.offsetY = 0
-        this.container.addEventListener('mousedown', this.onMouseDown.bind(this))
-        this.container.addEventListener('mouseleave', this.onMouseLeave.bind(this))
+        //
+        this.clearImg = this.context.createImageData(width, height)
     }
     get width() {
         return this.canvas.width
@@ -73,45 +76,31 @@ class Screen {
         if (typeof value !== 'string' || !value.endsWith('px')) value = value + 'px'
         this.container.style.left = value
     }
+    /**
+     * Clear the canvas.
+     * This does not affect the background canvas.
+     */
     clear() {
-        const { context, width, height } = this
-        context.clearRect(0, 0, width, height)
+        const { context, clearImg } = this
+        context.putImageData(clearImg, 0, 0)
     }
+    /**
+     * Shows a debugging window with the given html content.
+     * @param {string} html - The html content to be displayed in the debugging window.
+     */
     debug(html) {
         const { debugWindow } = this
         debugWindow.innerHTML = html
         if (debugWindow.style.display === 'none') debugWindow.style.display = 'block'
     }
+    /**
+     * Draws a background with the given color onto the background canvas.
+     * @param {string} color - The color to fill the background with.
+     */
     drawBackground(color) {
         const { backgroundContext, width, height } = this
         backgroundContext.fillStyle = color
         backgroundContext.fillRect(0, 0, width, height)
-    }
-    onMouseDown(event) {
-        this.isDragging = true
-        this.offsetX = event.clientX - parseInt(this.left)
-        this.offsetY = event.clientY - parseInt(this.top)
-        this.container.addEventListener('mousemove', this.onMouseMove.bind(this))
-        this.container.addEventListener('mouseup', this.onMouseUp.bind(this))
-    }
-    onMouseLeave() {
-        if (this.isDragging) this.isDragging = false
-    }
-    onMouseMove(event) {
-        if (this.isDragging) {
-            let newX = event.clientX - this.offsetX
-            let newY = event.clientY - this.offsetY
-            const parentRect = this.container.parentElement.getBoundingClientRect()
-            newX = Math.max(0, Math.min(parentRect.width - this.container.offsetWidth, newX))
-            newY = Math.max(0, Math.min(parentRect.height - this.container.offsetHeight, newY))
-            this.left = newX
-            this.top = newY
-        }
-    }
-    onMouseUp() {
-        this.isDragging = false
-        this.container.removeEventListener('mousemove', this.onMouseMove)
-        this.container.removeEventListener('mouseup', this.onMouseUp)
     }
 }
 
