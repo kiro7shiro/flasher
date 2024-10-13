@@ -1,24 +1,28 @@
-import { Control } from '../Control.js'
+import { addEvents, Control } from '../Control.js'
 import { Screen } from './Screen.js'
-import * as nodes from '../nodes/index.js'
+import * as nodes from '../nodes/nodes.js'
 
 const timerDebugTemplate = '<div>fps: <%= frames %></div><div>delta: <%= delta.toFixed(2) %></div>'
 
-class FFT {
+class Bars {
     constructor(source, { sound, width, height, fftSize = 256, smoothingTimeConstant = 0.5 } = {}) {
         //
         if (!sound) throw new Error('A sound instance must be given.')
         if (width === null && width === undefined) throw new Error('Width must be given.')
         if (height === null && height === undefined) throw new Error('Height must be given.')
         //
+        console.log(source)
         this.control = new Control(source)
         this.element = this.control.element
+        console.log(this.element)
         //
-        this.analyser = sound.createAnalyzer({ fftSize, smoothingTimeConstant })
-        this.buffer = new Uint8Array(this.analyser.frequencyBinCount)
+        this.analyzer = sound.createAnalyzer({ fftSize, smoothingTimeConstant })
+        this.buffer = new Uint8Array(this.analyzer.frequencyBinCount)
         this.audioGraph = []
-        this.analyser.maxDecibels = -20
+        this.analyzer.maxDecibels = -20
+        this.analyzer.smoothingTimeConstant = 0.33
         //
+        nodes.AudioNodes(this)
         nodes.AnalyserNode(this)
         //
         this.scaleOffsetX = 37
@@ -78,12 +82,11 @@ class FFT {
             }
         })
         //
-        this.scaleCanvas = document.createElement('canvas')
+        this.scaleCanvas = this.screen.background
         this.scaleCanvas.width = width
         this.scaleCanvas.height = height
         this.scaleCanvas.style.position = 'absolute'
-        this.scaleCanvas.style.zIndex = 2
-        this.screen.container.append(this.scaleCanvas)
+        this.scaleCanvas.style.zIndex = 1
         this.scaleChart = new Chart(this.scaleCanvas, {
             type: 'bar',
             data: {
@@ -120,15 +123,6 @@ class FFT {
             }
         })
         //
-        const nodesContainer = this.element.querySelector('#nodes-container')
-        nodesContainer.style.display = 'none'
-        this.control.on('toggle-controls', function () {
-            if (nodesContainer.style.display === 'none') {
-                nodesContainer.style.display = 'block'
-            } else {
-                nodesContainer.style.display = 'none'
-            }
-        })
         const screenContainer = this.element.querySelector('#screen-container')
         screenContainer.append(this.screen.container)
         //
@@ -159,12 +153,12 @@ class FFT {
     }
     update() {
         // draw fft chart
-        const { analyser, buffer, chart } = this
-        analyser.getByteFrequencyData(buffer)
+        const { analyzer, buffer, chart } = this
+        analyzer.getByteFrequencyData(buffer)
         chart.data.datasets[0].data = buffer
         // NOTE : chart.update() clears the canvas, too.
         chart.update('none')
     }
 }
 
-export { FFT }
+export { Bars }
