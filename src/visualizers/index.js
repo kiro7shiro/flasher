@@ -1,4 +1,6 @@
 import * as visualizers from './visualizers.js'
+import { CustomNode } from '../nodes/CustomNode.js'
+import { customNodes } from '../nodes/index.js'
 
 /**
  * Adds a new audio node to the visualizers audio graph.
@@ -8,9 +10,9 @@ import * as visualizers from './visualizers.js'
  * @returns {AudioNode}
  */
 export function addNode(visualizer, nodeName, options = {}) {
-    const constructor = window[nodeName]
+    const constructor = window[nodeName] || customNodes[nodeName]
     if (!constructor) throw new Error(`${nodeName} not defined.`)
-    const { context } = visualizer.analyser
+    const { context } = visualizer.analyzer
     const node = new constructor(context, options)
     visualizer.audioGraph.push(node)
     return node
@@ -23,8 +25,12 @@ export function addNode(visualizer, nodeName, options = {}) {
  */
 export function appendNodeControls(visualizer, controls) {
     const { element } = visualizer
-    const nodesContainer = element.querySelector('#nodes-container')
-    nodesContainer.append(controls.element)
+    const nodesContainer = element.querySelector('.audio-nodes')
+    const analyzer = nodesContainer.querySelector('#analyzer')
+    //nodesContainer.append(controls.element)
+    nodesContainer.insertBefore(controls.element, analyzer)
+    nodesContainer.insertBefore(document.createElement('hr'), analyzer)
+    //nodesContainer.insertAdjacentElement('afterbegin', controls.element)
 }
 
 /**
@@ -33,19 +39,43 @@ export function appendNodeControls(visualizer, controls) {
  */
 export function connect(sound, visualizer) {
     if (visualizer.audioGraph.length) {
-        let prev = visualizer.audioGraph[0]
-        prev.connect(visualizer.analyser)
-        for (let nCnt = 1; nCnt < visualizer.audioGraph.length; nCnt++) {
+        let prev = visualizer.audioGraph[visualizer.audioGraph.length - 1]
+        if (prev instanceof CustomNode) {
+            prev.output.connect(visualizer.analyzer)
+        } else {
+            prev.connect(visualizer.analyzer)
+        }
+        for (let nCnt = visualizer.audioGraph.length - 2; nCnt >= 0; nCnt--) {
             const next = visualizer.audioGraph[nCnt]
-            next.connect(prev)
+            switch (true) {
+                case next instanceof CustomNode && prev instanceof CustomNode:
+                    next.output.connect(prev.input)
+                    break
+                case next instanceof CustomNode && !(prev instanceof CustomNode):
+                    next.output.connect(prev)
+                    break
+                case prev instanceof CustomNode:
+                    next.connect(prev.input)
+                    break
+                default:
+                    next.connect(prev)
+                    break
+            }
             prev = next
         }
-        const last = visualizer.audioGraph[visualizer.audioGraph.length - 1]
-        sound.source.connect(last)
+        const last = visualizer.audioGraph[0]
+        if (last instanceof CustomNode) {
+            sound.source.connect(last.input)
+        } else {
+            sound.source.connect(last)
+        }
     } else {
-        sound.source.connect(visualizer.analyser)
+        sound.source.connect(visualizer.analyzer)
     }
-    visualizer.draw()
+    // FIX : single responsibility
+    const start = sound.context.currentTime * 1000
+    visualizer.timer.last = 0
+    visualizer.draw(start)
 }
 
 /**
@@ -53,11 +83,16 @@ export function connect(sound, visualizer) {
  * @param {Object} visualizer
  */
 export function disconnect(visualizer) {
+    // FIX : single responsibility 
     cancelAnimationFrame(visualizer.handle)
     visualizer.audioGraph.map(function (node) {
-        node.disconnect()
+        if (node instanceof CustomNode) {
+            node.output.disconnect()
+        } else {
+            node.disconnect()
+        }
     })
-    visualizer.analyser.disconnect()
+    //visualizer.analyzer.disconnect()
 }
 
 /**
