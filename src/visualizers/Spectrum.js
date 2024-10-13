@@ -2,10 +2,59 @@ import { Control } from '../Control.js'
 import { Screen } from './Screen.js'
 import * as nodes from '../nodes/nodes.js'
 
-const timerDebugTemplate = '<div>fps: <%= fps %></div><div>delta: <%= delta.toFixed(2) %></div>'
+const timerDebugTemplate = '<div class="w3-text-white">fps: <%= rate.toFixed(2) %></div>'
+
+const defaultColors = (function () {
+    const startColor = new Color('#200020')
+    const endColor = new Color('#e2dc18')
+    const colorRamp = startColor.steps(endColor, {
+        space: 'lch',
+        outputSpace: 'srgb',
+        maxDeltaE: 3, // max deltaE between consecutive steps (optional)
+        steps: 256 // min number of steps
+    })
+    colorRamp.map(function (color) {
+        color.buffer = color
+            .toString({
+                format: {
+                    name: 'b',
+                    coords: ['<number>[0, 255]', '<number>[0, 255]', '<number>[0, 255]'],
+                    commas: true
+                }
+            })
+            .replace('b(', '')
+            .replace(')', '')
+            .split(',')
+            .map(function (num) {
+                return Math.floor(Number(num.trim()))
+            })
+    })
+    return colorRamp
+})()
 
 class Spectrum {
-    constructor(source, { sound, width, height, fftSize = 256, smoothingTimeConstant = 0.5, timeframe = 256 } = {}) {
+    static Animations = {
+        up: 'up',
+        down: 'down',
+        left: 'left',
+        right: 'right',
+        floating: 'floating',
+        rolling: 'rolling'
+    }
+    constructor(
+        source,
+        {
+            sound,
+            width,
+            height,
+            fftSize = 256,
+            smoothingTimeConstant = 0,
+            timeframe = 256,
+            direction = Spectrum.Animations.right,
+            effect = Spectrum.Animations.rolling,
+            colors = defaultColors
+        } = {}
+    ) {
         //
         if (!sound) throw new Error('A sound instance must be given.')
         if (width === null && width === undefined) throw new Error('Width must be given.')
@@ -14,56 +63,91 @@ class Spectrum {
         this.control = new Control(source)
         this.element = this.control.element
         //
-        this.analyser = sound.createAnalyzer({ fftSize, smoothingTimeConstant })
-        this.buffer = new Uint8Array(this.analyser.frequencyBinCount)
+        this.analyzer = sound.createAnalyzer({ fftSize, smoothingTimeConstant })
+        this.buffer = new Uint8Array(this.analyzer.frequencyBinCount)
         this.audioGraph = []
-        this.analyser.maxDecibels = 0
-        this.analyser.smoothingTimeConstant = 0
-        //
+        this.analyzer.maxDecibels = 0
+        // ui event handling
+        nodes.AudioNodes(this)
         nodes.AnalyserNode(this)
-        //
-        this.lastDraw = 0
-        this.frameCount = 0
-        this.firstFrame = 0
-        this.secondFrame = 1
-        this.timeframe = timeframe
         // offsets for the scale canvas
         this.scaleOffsetX = 37
         this.scaleOffsetY = 10
         this.borderBottom = 50
-        //
+        // animation
+        this.direction = direction
+        this.effect = effect
+        this.timeframe = timeframe
+        this.pixels = null
+        this.cellsSize = null
+        this.chunkDivisor = null
+        this.loadBuff = null
+        this.buffCnt = null
+        this.binModulo = null
+        this.stepSize = null
+        this.skipFrames = null
+        this.frameCount = 0
+        this.timer = {
+            last: 0,
+            rate: 0,
+            interval: 1000 / 60
+        }
+        this.colors = colors
+        this.handle = null
+        // create offscreen
         const { buffer } = this
         this.screen = new Screen(width, height)
         this.offscreen = new Screen(width, height)
         this.offscreen.width = this.offscreen.width - this.scaleOffsetX
         this.offscreen.height = this.offscreen.height - this.borderBottom
-        this.cellsWidth = Math.round(this.offscreen.width / buffer.length)
-        this.cellsHeight = this.offscreen.height / timeframe
-        //
         const { offscreen } = this
-        this.frame1 = new Screen(offscreen.width, offscreen.height)
-        this.frame2 = new Screen(offscreen.width, offscreen.height)
-        this.frames = [this.frame1, this.frame2]
-        //
-        const pixels = (this.pixels = offscreen.context.createImageData(offscreen.width, 1))
+        // pixels buffer
+        if (direction === Spectrum.Animations.up || direction === Spectrum.Animations.down) {
+            this.pixels = offscreen.context.createImageData(offscreen.width, 1)
+            this.cellsSize = offscreen.width / buffer.length
+            this.stepSize = offscreen.height / this.timeframe
+            this.chunkDivisor = offscreen.width
+            this.buffCnt = 0
+            this.loadBuff = function (cnt) {
+                return (cnt += 1)
+            }
+        } else {
+            this.pixels = offscreen.context.createImageData(1, offscreen.height)
+            this.cellsSize = offscreen.height / buffer.length
+            this.stepSize = offscreen.width / this.timeframe
+            this.chunkDivisor = offscreen.height
+            this.buffCnt = buffer.length - 1
+            this.loadBuff = function (cnt) {
+                return (cnt -= 1)
+            }
+        }
+        this.binModulo = Math.round(this.cellsSize)
+        this.skipFrames = Math.floor(1 / this.stepSize)
+        this.skipFrames = this.skipFrames > 0 ? this.skipFrames : 1
+        // load zero color
+        const pixels = this.pixels
+        const zeroColor = this.colors[0]
         for (let pCnt = 0; pCnt < pixels.data.length; pCnt += 4) {
-            pixels.data[pCnt] = 255
-            pixels.data[pCnt + 1] = 255
-            pixels.data[pCnt + 2] = 255
+            pixels.data[pCnt] = zeroColor.buffer[0]
+            pixels.data[pCnt + 1] = zeroColor.buffer[1]
+            pixels.data[pCnt + 2] = zeroColor.buffer[2]
             pixels.data[pCnt + 3] = 0
         }
-        //
-        this.scaleCanvas = document.createElement('canvas')
+        // double buffer frames
+        this.firstFrame = 0
+        this.secondFrame = 1
+        this.frames = [new Screen(offscreen.width, offscreen.height), new Screen(offscreen.width, offscreen.height)]
+        // create scale canvas
+        this.scaleCanvas = this.screen.background
         this.scaleCanvas.width = width
         this.scaleCanvas.height = height
         this.scaleCanvas.style.position = 'absolute'
-        this.scaleCanvas.style.zIndex = 2
-        this.screen.container.append(this.scaleCanvas)
+        this.scaleCanvas.style.zIndex = 1
         this.scaleChart = new Chart(this.scaleCanvas, {
             type: 'bar',
             data: {
-                labels: buffer.reduce(function (accu, curr, index) {
-                    accu.push(index)
+                labels: new Array(timeframe).fill(0).reduce(function (accu, curr, index) {
+                    accu.push(index + 1)
                     return accu
                 }, [])
             },
@@ -71,18 +155,25 @@ class Spectrum {
                 animation: false,
                 scales: {
                     y: {
-                        min: 1,
-                        max: timeframe,
-                        reverse: false,
+                        min: 20,
+                        max: sound.context.sampleRate / 2,
+                        type: 'linear',
                         grid: {
                             display: true
+                        },
+                        ticks: {
+                            callback: function (value, index, ticks) {
+                                return value.toLocaleString('en-US', { notation: 'compact', compactDisplay: 'short' })
+                            },
+                            crossAlign: 'far'
                         }
                     },
                     x: {
                         min: 1,
-                        max: buffer.length,
+                        max: timeframe,
                         grid: {
-                            display: true
+                            display: true,
+                            color: '#272727'
                         }
                     }
                 },
@@ -94,105 +185,143 @@ class Spectrum {
                 responsive: false
             }
         })
-        //
-        const { control, element } = this
-        const nodesContainer = element.querySelector('#nodes-container')
-        nodesContainer.style.display = 'none'
-        control.on('toggle-controls', function () {
-            if (nodesContainer.style.display === 'none') {
-                nodesContainer.style.display = 'block'
-            } else {
-                nodesContainer.style.display = 'none'
-            }
-        })
-        //
+        // append screen to container
+        const { element } = this
         const screenContainer = element.querySelector('#screen-container')
         screenContainer.append(this.screen.container)
-        //
-        this.timer = {
-            delta: 0,
-            frames: 0,
-            fps: 60,
-            last: 0
-        }
     }
     draw(timestamp) {
-        const { timer } = this
-        timer.delta = timestamp - this.lastDraw
-        // update pixel buffer
-        this.update()
-        // draw on row of pixels
-        const { cellsHeight, firstFrame, secondFrame, frames, pixels, timeframe } = this
-        const frame = frames[secondFrame]
-        const y = this.frameCount * cellsHeight
-        for (let hCnt = 0; hCnt < cellsHeight; hCnt++) {
-            frame.context.putImageData(pixels, 0, y + hCnt)
-        }
-        // update frames
-        const { offscreen, scaleOffsetX, scaleOffsetY, screen } = this
-        this.frameCount++
-        if (this.frameCount > timeframe) {
-            this.frameCount = 0
-            this.firstFrame = secondFrame
-            this.secondFrame = firstFrame
-        }
-        // draw frames
-        const offsetDelta = parseInt(timer.delta / 16.66)
-        offscreen.clear()
-        offscreen.context.drawImage(frames[firstFrame].canvas, 0, -y - offsetDelta)
-        offscreen.context.drawImage(frames[secondFrame].canvas, 0, offscreen.height - y - offsetDelta)
-        screen.clear()
-        screen.context.drawImage(offscreen.canvas, scaleOffsetX, scaleOffsetY)
         // loop
-        this.handle = requestAnimationFrame(this.draw.bind(this))
-        if (timestamp > timer.last + 1000) {
-            //screen.debug(ejs.render(timerDebugTemplate, timer))
-            timer.last = performance.now()
-            timer.fps = timer.frames
-            timer.frames = 0
+        const { timer } = this
+        const deltaTime = timestamp - timer.last
+        timer.rate = 1000 / deltaTime
+        if (deltaTime > timer.interval) {
+            // update
+            timer.last = timestamp
+            this.update()
+            // animate
+            const { firstFrame, secondFrame, skipFrames, frames, timeframe, offscreen, direction, effect, stepSize, pixels } = this
+            if (this.frameCount % skipFrames === 0) {
+                const delta = Math.floor(this.frameCount * stepSize)
+                const frame = frames[secondFrame]
+                offscreen.clear()
+                switch (direction) {
+                    case Spectrum.Animations.up:
+                        if (effect === Spectrum.Animations.floating) {
+                            for (let step = 0; step < stepSize; step++) {
+                                frame.context.putImageData(pixels, 0, offscreen.height - step - delta)
+                            }
+                            offscreen.context.drawImage(frame.canvas, 0, 0)
+                        } else {
+                            for (let step = 0; step < stepSize; step++) {
+                                frame.context.putImageData(pixels, 0, step + delta)
+                            }
+                            offscreen.context.drawImage(frames[firstFrame].canvas, 0, -delta)
+                            offscreen.context.drawImage(frames[secondFrame].canvas, 0, offscreen.height - delta)
+                        }
+                        break
+                    case Spectrum.Animations.down:
+                        if (effect === Spectrum.Animations.floating) {
+                            for (let step = 0; step < stepSize; step++) {
+                                frame.context.putImageData(pixels, 0, step + delta)
+                            }
+                            offscreen.context.drawImage(frame.canvas, 0, 0)
+                        } else {
+                            for (let step = 0; step < stepSize; step++) {
+                                frame.context.putImageData(pixels, 0, offscreen.height - step - delta)
+                            }
+                            offscreen.context.drawImage(frames[firstFrame].canvas, 0, delta)
+                            offscreen.context.drawImage(frames[secondFrame].canvas, 0, -offscreen.height + delta)
+                        }
+                        break
+                    case Spectrum.Animations.right:
+                        if (effect === Spectrum.Animations.floating) {
+                            for (let step = 0; step < stepSize; step++) {
+                                frame.context.putImageData(pixels, step + delta, 0)
+                            }
+                            offscreen.context.drawImage(frame.canvas, 0, 0)
+                        } else {
+                            for (let step = 0; step < stepSize; step++) {
+                                frame.context.putImageData(pixels, offscreen.width - step - delta, 0)
+                            }
+                            offscreen.context.drawImage(frames[firstFrame].canvas, delta, 0)
+                            offscreen.context.drawImage(frames[secondFrame].canvas, -offscreen.width + delta, 0)
+                        }
+                        break
+                    case Spectrum.Animations.left:
+                        if (effect === Spectrum.Animations.floating) {
+                            for (let step = 0; step < stepSize; step++) {
+                                frame.context.putImageData(pixels, offscreen.width - step - delta, 0)
+                            }
+                            offscreen.context.drawImage(frame.canvas, 0, 0)
+                        } else {
+                            for (let step = 0; step < stepSize; step++) {
+                                frame.context.putImageData(pixels, step + delta, 0)
+                            }
+                            offscreen.context.drawImage(frames[firstFrame].canvas, -delta, 0)
+                            offscreen.context.drawImage(frames[secondFrame].canvas, offscreen.width - delta, 0)
+                        }
+                        break
+                }
+            }
+            // draw frames
+            const { scaleOffsetX, scaleOffsetY, screen } = this
+            screen.clear()
+            screen.context.drawImage(offscreen.canvas, scaleOffsetX, scaleOffsetY)
+            screen.debug(ejs.render(timerDebugTemplate, timer))
+            // update frame order
+            this.frameCount++
+            if (this.frameCount > timeframe + 1) {
+                this.frameCount = 0
+                if (effect === Spectrum.Animations.rolling) {
+                    this.firstFrame = secondFrame
+                    this.secondFrame = firstFrame
+                }
+            }
         }
-        timer.frames++
-        this.lastDraw = performance.now()
-        return this.handle
+        this.handle = requestAnimationFrame(this.draw.bind(this))
     }
     update() {
-        const { analyser, buffer, cellsWidth, offscreen, pixels } = this
-        analyser.getByteFrequencyData(buffer)
-        let average = []
-        if (cellsWidth < 1) {
-            // buffer is larger than screen width
+        const { analyzer, buffer, cellsSize, chunkDivisor, direction, loadBuff, binModulo, colors, pixels } = this
+        // update buffer
+        analyzer.getByteFrequencyData(buffer)
+        // update pixels
+        if (cellsSize < 1) {
+            // buffer is larger than screen height or width
             // calculate an average for frequency bins
-            const chunkSize = buffer.length / offscreen.width
+            const chunkSize = buffer.length / chunkDivisor
+            const average = []
             for (let index = 0; index < buffer.length; index += chunkSize) {
                 const chunk = buffer.slice(index, index + chunkSize)
                 const chunkAvrg = chunk.reduce((sum, num) => sum + num, 0) / chunk.length
-                average.push(chunkAvrg)
+                average.push(Math.round(chunkAvrg))
+            }
+            this.buffCnt = direction === Spectrum.Animations.up || direction === Spectrum.Animations.down ? 0 : average.length - 1
+            for (let pCnt = 0; pCnt < pixels.data.length; pCnt += 4) {
+                this.buffCnt = loadBuff(this.buffCnt)
+                if (this.buffCnt > average.length - 1 || this.buffCnt < 0) continue
+                const value = average[this.buffCnt]
+                const color = colors[value]
+                pixels.data[pCnt] = color.buffer[0]
+                pixels.data[pCnt + 1] = color.buffer[1]
+                pixels.data[pCnt + 2] = color.buffer[2]
+                pixels.data[pCnt + 3] = 255
             }
         } else {
-            // buffer has equal length or is shorter than screen width
-            average = buffer
-        }
-        // set pixel buffer
-        let bCnt = 0
-        for (let x = 0; x < pixels.data.length; x += 4) {
-            pixels.data[x + 3] = average[bCnt]
-            if (x % (cellsWidth * bCnt + 1) === 0) bCnt++
+            this.buffCnt = direction === Spectrum.Animations.up || direction === Spectrum.Animations.down ? 0 : buffer.length - 1
+            // buffer as equal length or is shorter than screen height or width
+            for (let pCnt = 0; pCnt < pixels.data.length; pCnt += 4) {
+                if (pCnt % (binModulo * 4) === 0) this.buffCnt = loadBuff(this.buffCnt)
+                if (this.buffCnt > buffer.length - 1 || this.buffCnt < 0) continue
+                const value = buffer[this.buffCnt]
+                const color = colors[value]
+                pixels.data[pCnt] = color.buffer[0]
+                pixels.data[pCnt + 1] = color.buffer[1]
+                pixels.data[pCnt + 2] = color.buffer[2]
+                pixels.data[pCnt + 3] = 255
+            }
         }
     }
 }
 
 export { Spectrum }
-
-// TODO : do peak detection elsewhere
-/* const peaks = []
-const threshold = 64
-const range = 64
-for (let i = range; i < average.length - range; i++) {
-    const curr = average[i]
-    const before = average.slice(i - range, i)
-    const after = average.slice(i + 1, i + range + 1)
-    if (curr > before.every((val) => val < curr) && curr > after.every((val) => val < curr) && curr > threshold) {
-        peaks.push(i)
-    }
-}
-console.log(peaks) */

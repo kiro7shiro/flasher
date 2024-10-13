@@ -1,0 +1,9 @@
+<div class="w3-container w3-text-white">
+    <%- await include('visualizers/header', {title: 'meter' }) %>
+    <div class="audio-graph">
+        <div class="audio-nodes">
+            <%- await include('nodes/AnalyzerNode', locals) %>
+        </div>
+    </div>
+    <div id="screen-container" class="w3-container"></div>
+</div>
