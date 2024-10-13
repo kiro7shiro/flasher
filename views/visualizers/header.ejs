@@ -1,7 +1,9 @@
 <% if (locals.title===null || locals.title===undefined) locals.title='visualizer' %>
 <div class="w3-row">
     <div class="w3-half">
-        <h4><%= title %></h4>
+        <h4 class="w3-text-white"><%= title %></h4>
     </div>
-    <div class="w3-half"><button class="w3-button w3-right" data-action="toggle-controls">nodes</button></div>
+    <div class="w3-half w3-padding-16">
+        <button class="w3-button w3-right w3-text-white" data-action="toggle-controls">nodes</button>
+    </div>
 </div>
