@@ -2,24 +2,21 @@
  * Add basic event handling scheme for a control.
  * If the wrapped HTMLElement has a "data-action" attribute.
  * A custom event is fired with the action as the name.
- * Additionally a "data-detail" attribute can be provided which will be 
+ * Additionally a "data-detail" attribute can be provided which will be
  * added to the event detail.
  * @param {Control} control to add the events to
  * @param {Array} eventNames on which the element should fire custom events
  */
-function addEvents(control, eventNames = ['click']) {
+function addEvents(control, eventNames = ['click', 'input']) {
     const { element } = control
     for (const eventName of eventNames) {
-        element.addEventListener(
-            eventName,
-            function (event) {
-                const { target } = event
-                if (target.hasAttribute('data-action')) {
-                    const { action, detail } = target.dataset
-                    element.dispatchEvent(new CustomEvent(action, { detail }))
-                }
+        element.addEventListener(eventName, function (event) {
+            const { target } = event
+            if (target.hasAttribute('data-action')) {
+                const { action, detail } = target.dataset
+                element.dispatchEvent(new CustomEvent(action, { detail }))
             }
-        )
+        })
     }
 }
 
