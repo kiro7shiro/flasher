@@ -1,0 +1,20 @@
+<div class="w3-container w3-text-white">
+    <%- await include('visualizers/header', { title: 'detector' }) %>
+    <div class="audio-graph">
+        <div class="audio-nodes">
+            <%- await include('nodes/BiquadFilterNode', { id: '1', type: 'lowpass' }) %>
+            <%- await include('nodes/AnalyzerNode', locals) %>
+        </div>
+    </div>
+    <div class="w3-row-padding">
+        <div class="w3-half">
+            <div id="screen-container" class="w3-container"></div>
+        </div>
+        <div class="w3-half">
+            <div class="w3-container w3-center">
+                <h1>beat</h1>
+                <div id="beat" style="height: 25px; width: 25px; border-radius: 50%; background-color: #272727; display: inline-block;"></div>
+            </div>
+        </div>
+    </div>
+</div>
