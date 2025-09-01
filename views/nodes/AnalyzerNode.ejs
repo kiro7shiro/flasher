@@ -1,26 +1,8 @@
-<div id="analyzer" class="w3-row">
-    <div class="w3-padding" data-action="toggle-node-controls" data-detail="analyzer">analyzer</div>
-    <div class="audio-node-controls">
-        <div class="w3-row w3-padding">
-            <div class="w3-col" style="width:60px">min DB</div>
-            <div class="w3-rest">
-                <%- await include('Slider', {id: 'minDecibels' , action:'set-analyzer', detail: 'minDecibels' , min: -100,
-                    max: 0, value: 0 }) %>
-            </div>
-        </div>
-        <div class="w3-row w3-padding">
-            <div class="w3-col" style="width:60px">max DB</div>
-            <div class="w3-rest">
-                <%- await include('Slider', {id: 'maxDecibels' , action:'set-analyzer', detail: 'maxDecibels' , min: -100,
-                    max: 0, value: 0 }) %>
-            </div>
-        </div>
-        <div class="w3-row w3-padding">
-            <div class="w3-col" style="width:60px">STC</div>
-            <div class="w3-rest">
-                <%- await include('Slider', {id: 'smoothingTimeConstant' , action:'set-analyzer',
-                    detail: 'smoothingTimeConstant' , min: 0, max: 1, step: 0.01, value: 0 }) %>
-            </div>
-        </div>
+<div class="node-controls analyser-node">
+    <div class="node-header" data-event="click" data-action="toggle-analyser" data-detail="analyser">analyzer</div>
+    <div class="controls">
+        <%- include('/views/Slider.ejs', { event: 'change', action: 'set-analyzer', detail: 'minDB', min: -100, max: 0, step: 1, value: 0, header: 'minDB' }) %>
+        <%- include('/views/Slider.ejs', { event: 'change', action: 'set-analyzer', detail: 'maxDB', min: -100, max: 0, step: 1, value: 0, header: 'maxDB' }) %>
+        <%- include('/views/Slider.ejs', { event: 'change', action: 'set-analyzer', detail: 'STC', min: 0, max: 1, step: 0.01, value: 0, header: 'STC' }) %>
     </div>
 </div>

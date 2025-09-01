@@ -1,15 +1,6 @@
-<div>
-    <% if (locals.id===null || locals.id===undefined) locals.id='panner' %>
-    <div id="<%= id %>" class="w3-row">
-        <div class="w3-padding">
-            pan
-        </div>
-        <div class="w3-row w3-padding">
-            <div class="w3-col" style="width:60px">&nbsp;</div>
-            <div class="w3-rest">
-                <%- await include('Slider', { id: 'pan' , min: '-1' , max: '1' , value: '0' , step: '0.01' ,
-                    action:'set-panner' }) %>
-            </div>
-        </div>
+<div class="node-controls pan-node">
+    <div class="node-header" data-event="click" data-action="toggle-pan" data-detail="pan">pan</div>
+    <div class="controls">
+        <%- include('/views/Slider.ejs', { event: 'change', action: 'set-pan', detail: 'pan', min: -1, max: 1, step: 0.1, value: 0, header: 'L/R' }) %>
     </div>
 </div>

@@ -21,8 +21,8 @@ function addEvents(control, eventNames = ['click', 'input']) {
 }
 
 /**
- * Base class that adds the rendered template into the dom and adds
- * convenience functions to the given element.
+ * Base class that renders a template and adds
+ * convenience functions to the resulting element.
  */
 class Control {
     /**

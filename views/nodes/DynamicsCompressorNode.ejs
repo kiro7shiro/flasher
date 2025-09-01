@@ -1,43 +1,10 @@
-<div>
-    <% if (locals.id===null || locals.id===undefined) locals.id='compressor' %>
-    <div id="<%= id %>" class="w3-row">
-        <div class="w3-padding">
-            compressor
-        </div>
-        <div class="w3-row w3-padding">
-            <div class="w3-col" style="width:60px">thresh</div>
-            <div class="w3-rest">
-                <%- await include('Slider', { id: 'threshold' , min: '-100' , max: '0' , value: '0' ,
-                    action:'set-compressor', detail: 'threshold' }) %>
-            </div>
-        </div>
-        <div class="w3-row w3-padding">
-            <div class="w3-col" style="width:60px">knee</div>
-            <div class="w3-rest">
-                <%- await include('Slider', { id: 'knee' , min: '0' , max: '40' , value: '0' ,
-                    action:'set-compressor', detail: 'knee' }) %>
-            </div>
-        </div>
-        <div class="w3-row w3-padding">
-            <div class="w3-col" style="width:60px">ratio</div>
-            <div class="w3-rest">
-                <%- await include('Slider', { id: 'ratio' , min: '1' , max: '20' , value: '0' ,
-                    action:'set-compressor', detail: 'ratio' }) %>
-            </div>
-        </div>
-        <div class="w3-row w3-padding">
-            <div class="w3-col" style="width:60px">attack</div>
-            <div class="w3-rest">
-                <%- await include('Slider', { id: 'attack' , min: '0' , max: '1' , value: '0' , step: '0.01',
-                    action:'set-compressor', detail: 'attack' }) %>
-            </div>
-        </div>
-        <div class="w3-row w3-padding">
-            <div class="w3-col" style="width:60px">release</div>
-            <div class="w3-rest">
-                <%- await include('Slider', { id: 'release' , min: '0' , max: '1' , value: '0' , step: '0.01',
-                    action:'set-compressor', detail: 'release' }) %>
-            </div>
-        </div>
+<div class="node-controls biquadFilter-node">
+    <div class="node-header" data-event="click" data-action="toggle-compressor" data-detail="compressor">compressor</div>
+    <div class="controls">
+        <%- include('/views/Slider.ejs', { event: 'change', action: 'set-compressor', detail: 'threshold', min: -100, max: 0, step: 1, value: 0, header: 'thresh' }) %>
+        <%- include('/views/Slider.ejs', { event: 'change', action: 'set-compressor', detail: 'knee', min: 0, max: 40, step: 0.1, value: 0, header: 'knee' }) %>
+        <%- include('/views/Slider.ejs', { event: 'change', action: 'set-compressor', detail: 'ratio', min: 1, max: 20, step: 1, value: 0, header: 'ratio' }) %>
+        <%- include('/views/Slider.ejs', { event: 'change', action: 'set-compressor', detail: 'attack', min: 0, max: 1, step: 0.1, value: 0, header: 'attack' }) %>
+        <%- include('/views/Slider.ejs', { event: 'change', action: 'set-compressor', detail: 'release', min: 0, max: 1, step: 0.1, value: 0, header: 'release' }) %>
     </div>
 </div>

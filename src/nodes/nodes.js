@@ -1,226 +1,392 @@
 /**
- * This module holds functions that add event handlers for the
- * individual elements
+ * Control classes for audio nodes
  */
 
-export function AudioNodes(visualizer) {
-    const { control, element } = visualizer
-    const audioNodes = element.querySelector('.audio-nodes')
-    control.on('toggle-controls', function () {
-        if (!audioNodes.style.display || audioNodes.style.display === 'none') {
-            audioNodes.style.display = 'block'
-        } else {
-            audioNodes.style.display = 'none'
-        }
-    })
+import { Control } from '/src/Control.js'
+
+class Slider {
+    constructor(container) {
+        this.value = container.querySelector('.value')
+        this.slider = container.querySelector('.slider')
+        this.header = container.querySelector('.header')
+    }
 }
 
-export function AnalyserNode(visualizer) {
-    const { analyzer, control, element } = visualizer
-    const minDecibels = element.querySelector(`#analyzer #minDecibels`)
-    const maxDecibels = element.querySelector(`#analyzer #maxDecibels`)
-    const analyzerSTC = element.querySelector(`#analyzer #smoothingTimeConstant`)
-    minDecibels.value = analyzer.minDecibels
-    minDecibels.parentNode.children[1].innerText = `${analyzer.minDecibels} DB`
-    maxDecibels.value = analyzer.maxDecibels
-    maxDecibels.parentNode.children[1].innerText = `${analyzer.maxDecibels} DB`
-    analyzerSTC.value = analyzer.smoothingTimeConstant
-    analyzerSTC.parentNode.children[1].innerText = `${analyzer.smoothingTimeConstant} ms`
-    control.on('set-analyzer', function (event) {
-        const detail = event.detail
-        const target = element.querySelector(`#analyzer #${detail}`)
-        if (analyzer[detail] !== undefined && analyzer[detail] !== null) {
-            if (detail === 'minDecibels' || detail === 'maxDecibels') {
-                // clip range under 0
-                analyzer[detail] = target.value > -1 ? -1 : target.value
-                target.parentNode.children[1].innerText = `${target.value} DB`
-            } else {
-                // smoothingTimeConstant
-                // clip range between 0 and 1
-                const value = target.value > 1 ? 1 : target.value < 0 ? 0 : target.value
-                analyzer[detail] = value
-                target.parentNode.children[1].innerText = `${target.value} ms`
+class AnalyserNode {
+    static defaults = {
+        template: '/views/nodes/AnalyzerNode.ejs',
+        data: {},
+        container: 'div',
+        events: ['click', 'change']
+    }
+    static async build(node, options = {}) {
+        options = Control.buildOptions(AnalyserNode.defaults, options)
+        const { template, data, container, events } = options
+        const control = await Control.build(template, data, container, events)
+        return new AnalyserNode(node, control)
+    }
+    static buildSync(node, options = {}) {
+        options = Control.buildOptions(AnalyserNode.defaults, options)
+        const { template, data, container, events } = options
+        const control = Control.buildSync(template, data, container, events)
+        return new AnalyserNode(node, control)
+    }
+    constructor(node, control) {
+        this.control = control
+        this.container = control.container
+        this.analyzer = node
+        const { analyzer, container } = this
+        const minDecibels = new Slider(container.querySelector('.minDB'))
+        const maxDecibels = new Slider(container.querySelector(`.maxDB`))
+        const analyzerSTC = new Slider(container.querySelector(`.STC`))
+        const controls = container.querySelector('.node-controls')
+        minDecibels.value.innerText = analyzer.minDecibels
+        minDecibels.slider.value = analyzer.minDecibels
+        maxDecibels.value.innerText = analyzer.maxDecibels
+        maxDecibels.slider.value = analyzer.maxDecibels
+        analyzerSTC.value.innerText = analyzer.smoothingTimeConstant
+        analyzerSTC.slider.value = analyzer.smoothingTimeConstant
+        this.control.on('toggle-analyser', function (event) {
+            controls.classList.toggle('collapsed')
+        })
+        this.control.on('set-analyzer', function (event) {
+            const { detail: target } = event.detail.dataset
+            switch (target) {
+                case 'minDB':
+                    analyzer.minDecibels = minDecibels.slider.value
+                    minDecibels.value.innerText = minDecibels.slider.value
+                    break
+                case 'maxDB':
+                    analyzer.maxDecibels = maxDecibels.slider.value
+                    maxDecibels.value.innerText = maxDecibels.slider.value
+                    break
+                case 'STC':
+                    analyzer.smoothingTimeConstant = analyzerSTC.slider.value
+                    analyzerSTC.value.innerText = analyzerSTC.slider.value
+                    break
             }
-        }
-    })
+        })
+    }
 }
 
-export function BiquadFilterNode(filter, control) {
-    const { element } = control
-    const frequency = element.querySelector('#frequency')
-    const detune = element.querySelector('#detune')
-    const Q = element.querySelector('#Q')
-    const gain = element.querySelector('#gain')
-    frequency.value = filter.frequency.value
-    frequency.parentNode.children[1].innerText = `${filter.frequency.value} Hz`
-    detune.value = filter.detune.value
-    detune.parentNode.children[1].innerText = `${filter.detune.value} Hz`
-    Q.value = filter.Q.value
-    Q.parentNode.children[1].innerText = `${filter.Q.value}`
-    gain.value = filter.gain.value
-    gain.parentNode.children[1].innerText = `${filter.gain.value} dB`
-    control.on('set-filter', function (event) {
-        const detail = event.detail
-        const target = element.querySelector(`#${detail}`)
-        if (filter[detail] !== undefined && filter[detail] !== null) {
-            filter[detail].value = target.value
-            switch (detail) {
+class BiquadFilterNode {
+    static defaults = {
+        template: '/views/nodes/BiquadFilterNode.ejs',
+        data: {},
+        container: 'div',
+        events: ['click', 'change'],
+        type: 'lowpass',
+        frequency: 11000,
+        detune: 0,
+        Q: 1,
+        gain: 1
+    }
+    static async build(sound, options = {}) {
+        options = Control.buildOptions(BiquadFilterNode.defaults, options)
+        const { template, container, events } = options
+        const control = await Control.build(template, options, container, events)
+        return new BiquadFilterNode(sound, control)
+    }
+    static buildSync(sound, options = {}) {
+        options = Control.buildOptions(BiquadFilterNode.defaults, options)
+        const { template, container, events } = options
+        const control = Control.buildSync(template, options, container, events)
+        return new BiquadFilterNode(sound, control)
+    }
+    constructor(sound, control, options = {}) {
+        options = Control.buildOptions(BiquadFilterNode.defaults, options)
+        this.control = control
+        this.container = control.container
+        this.node = new window.BiquadFilterNode(sound.context, options)
+        const { container } = control
+        const { node } = this
+        const frequency = new Slider(container.querySelector('.frequency'))
+        const detune = new Slider(container.querySelector('.detune'))
+        const Q = new Slider(container.querySelector('.Q'))
+        const gain = new Slider(container.querySelector('.gain'))
+        const controls = container.querySelector('.node-controls')
+        const dropDownButton = controls.querySelector('.w3-button')
+        frequency.value.innerText = node.frequency.value
+        frequency.slider.value = node.frequency.value
+        detune.value.innerText = node.detune.value
+        detune.slider.value = node.detune.value
+        Q.value.innerText = node.Q.value
+        Q.slider.value = node.Q.value
+        gain.value.innerText = node.gain.value
+        gain.slider.value = node.gain.value
+        this.control.on('toggle-filter', function () {
+            controls.classList.toggle('collapsed')
+        })
+        this.control.on('set-filter', function (event) {
+            const { detail: target } = event.detail.dataset
+            switch (target) {
                 case 'frequency':
+                    node.frequency.value = frequency.slider.value
+                    frequency.value.innerText = frequency.slider.value
+                    break
                 case 'detune':
-                    target.parentNode.children[1].innerText = `${target.value} Hz`
+                    node.detune.value = detune.slider.value
+                    detune.value.innerText = detune.slider.value
+                    break
+                case 'Q':
+                    node.Q.value = Q.slider.value
+                    Q.value.innerText = Q.slider.value
                     break
                 case 'gain':
-                    target.parentNode.children[1].innerText = `${target.value} dB`
+                    node.gain.value = gain.slider.value
+                    gain.value.innerText = gain.slider.value
                     break
-                default:
-                    target.parentNode.children[1].innerText = `${target.value}`
+                case 'lowpass':
+                case 'highpass':
+                case 'bandpass':
+                case 'lowshelf':
+                case 'highshelf':
+                case 'notch':
+                case 'peaking':
+                    node.type = target
+                    dropDownButton.innerText = target
                     break
             }
-        }
-    })
+        })
+    }
 }
 
-export function DelayNode(node, control) {
-    const { element } = control
-    const delay = element.querySelector('#delay')
-    delay.value = node.delayTime.value
-    delay.parentNode.children[1].innerText = `${node.delayTime.value} ms`
-    control.on('set-delay', function () {
-        node.delayTime.value = delay.value
-        delay.parentNode.children[1].innerText = `${delay.value} ms`
-    })
+class DelayNode {
+    static defaults = {
+        template: '/views/nodes/DelayNode.ejs',
+        data: {},
+        container: 'div',
+        events: ['click', 'change'],
+        delayTime: 1
+    }
+    static async build(sound, options = {}) {
+        options = Control.buildOptions(DelayNode.defaults, options)
+        const { template, container, events } = options
+        const control = await Control.build(template, options, container, events)
+        return new DelayNode(sound, control)
+    }
+    static buildSync(sound, options = {}) {
+        options = Control.buildOptions(DelayNode.defaults, options)
+        const { template, container, events } = options
+        const control = Control.buildSync(template, options, container, events)
+        return new DelayNode(sound, control)
+    }
+    constructor(sound, control, options = {}) {
+        options = Control.buildOptions(DelayNode.defaults, options)
+        this.control = control
+        this.container = control.container
+        this.node = new window.DelayNode(sound.context, options)
+        const { container } = control
+        const { node } = this
+        const delayTime = new Slider(container.querySelector('.delayTime'))
+        delayTime.value.innerText = node.delayTime.value
+        delayTime.slider.value = node.delayTime.value
+        const controls = container.querySelector('.node-controls')
+        this.control.on('toggle-delay', function () {
+            controls.classList.toggle('collapsed')
+        })
+        this.control.on('set-delay', function (event) {
+            node.delayTime.value = delayTime.slider.value
+            delayTime.value.innerText = delayTime.slider.value
+        })
+    }
 }
 
-export function DynamicsCompressorNode(compressor, control) {
-    const { element } = control
-    const threshold = element.querySelector('#threshold')
-    const knee = element.querySelector('#knee')
-    const ratio = element.querySelector('#ratio')
-    const attack = element.querySelector('#attack')
-    const release = element.querySelector('#release')
-    threshold.value = compressor.threshold.value
-    threshold.parentNode.children[1].innerText = `${compressor.threshold.value} dB`
-    knee.value = compressor.knee.value
-    knee.parentNode.children[1].innerText = `${compressor.knee.value}`
-    ratio.value = compressor.ratio.value
-    ratio.parentNode.children[1].innerText = `${compressor.ratio.value} dB`
-    attack.value = compressor.attack.value
-    attack.parentNode.children[1].innerText = `${compressor.attack.value.toFixed(2)} s`
-    release.value = compressor.release.value
-    release.parentNode.children[1].innerText = `${compressor.release.value.toFixed(2)} s`
-    control.on('set-compressor', function (event) {
-        const detail = event.detail
-        const target = element.querySelector(`#${detail}`)
-        if (compressor[detail] !== undefined && compressor[detail] !== null) {
-            compressor[detail].value = target.value
-            switch (detail) {
+class DynamicsCompressorNode {
+    static defaults = {
+        template: '/views/nodes/DynamicsCompressorNode.ejs',
+        data: {},
+        container: 'div',
+        events: ['click', 'change'],
+        threshold: -100,
+        knee: 20,
+        ratio: 1,
+        attack: 0,
+        release: 0
+    }
+    static async build(sound, options = {}) {
+        options = Control.buildOptions(DynamicsCompressorNode.defaults, options)
+        const { template, container, events } = options
+        const control = await Control.build(template, options, container, events)
+        return new DynamicsCompressorNode(sound, control)
+    }
+    static buildSync(sound, options = {}) {
+        options = Control.buildOptions(DynamicsCompressorNode.defaults, options)
+        const { template, container, events } = options
+        const control = Control.buildSync(template, options, container, events)
+        return new DynamicsCompressorNode(sound, control)
+    }
+    constructor(sound, control, options = {}) {
+        options = Control.buildOptions(DynamicsCompressorNode.defaults, options)
+        this.control = control
+        this.container = control.container
+        this.node = new window.DynamicsCompressorNode(sound.context, options)
+        const { container } = control
+        const { node } = this
+        const controls = container.querySelector('.node-controls')
+        const threshold = new Slider(container.querySelector('.threshold'))
+        const knee = new Slider(container.querySelector('.knee'))
+        const ratio = new Slider(container.querySelector('.ratio'))
+        const attack = new Slider(container.querySelector('.attack'))
+        const release = new Slider(container.querySelector('.release'))
+        threshold.value.innerText = node.threshold.value
+        threshold.slider.value = node.threshold.value
+        knee.value.innerText = node.knee.value
+        knee.slider.value = node.knee.value
+        ratio.value.innerText = node.ratio.value
+        ratio.slider.value = node.ratio.value
+        attack.value.innerText = node.attack.value
+        attack.slider.value = node.attack.value
+        release.value.innerText = node.release.value
+        release.slider.value = node.release.value
+        this.control.on('toggle-compressor', function () {
+            controls.classList.toggle('collapsed')
+        })
+        this.control.on('set-compressor', function (event) {
+            const { detail: target } = event.detail.dataset
+            switch (target) {
                 case 'threshold':
+                    node.threshold.value = threshold.slider.value
+                    threshold.value.innerText = threshold.slider.value
+                    break
+                case 'knee':
+                    node.knee.value = knee.slider.value
+                    knee.value.innerText = knee.slider.value
+                    break
                 case 'ratio':
-                    target.parentNode.children[1].innerText = `${target.value} dB`
+                    node.ratio.value = ratio.slider.value
+                    ratio.value.innerText = ratio.slider.value
                     break
                 case 'attack':
-                case 'release':
-                    target.parentNode.children[1].innerText = `${target.value} s`
+                    node.attack.value = attack.slider.value
+                    attack.value.innerText = attack.slider.value
                     break
-                default:
-                    target.parentNode.children[1].innerText = `${target.value}`
+                case 'release':
+                    node.release.value = release.slider.value
+                    release.value.innerText = release.slider.value
                     break
             }
+        })
+    }
+}
+
+class GainNode {
+    static defaults = {
+        template: '/views/nodes/GainNode.ejs',
+        data: {},
+        container: 'div',
+        events: ['click', 'change'],
+        gain: 0
+    }
+    static async build(sound, options = {}) {
+        options = Control.buildOptions(GainNode.defaults, options)
+        const { template, container, events } = options
+        const control = await Control.build(template, options, container, events)
+        return new GainNode(sound, control)
+    }
+    static buildSync(sound, options = {}) {
+        options = Control.buildOptions(GainNode.defaults, options)
+        const { template, container, events } = options
+        const control = Control.buildSync(template, options, container, events)
+        return new GainNode(sound, control)
+    }
+    constructor(sound, control, options = {}) {
+        options = Control.buildOptions(GainNode.defaults, options)
+        this.control = control
+        this.container = control.container
+        this.node = new window.GainNode(sound.context, options)
+        const { container } = control
+        const { node } = this
+        const controls = container.querySelector('.node-controls')
+        const gain = new Slider(container.querySelector('.gain'))
+        gain.value.innerText = node.gain.value
+        gain.slider.value = node.gain.value
+        this.control.on('toggle-gain', function () {
+            controls.classList.toggle('collapsed')
+        })
+        this.control.on('set-gain', function () {
+            node.gain.value = gain.slider.value
+            gain.value.innerText = gain.slider.value
+        })
+    }
+}
+
+class StereoPannerNode {
+    static defaults = {
+        template: '/views/nodes/StereoPannerNode.ejs',
+        data: {},
+        container: 'div',
+        events: ['click', 'change'],
+        pan: 0
+    }
+    static async build(sound, options = {}) {
+        options = Control.buildOptions(StereoPannerNode.defaults, options)
+        const { template, container, events } = options
+        const control = await Control.build(template, options, container, events)
+        return new StereoPannerNode(sound, control)
+    }
+    static buildSync(sound, options = {}) {
+        options = Control.buildOptions(StereoPannerNode.defaults, options)
+        const { template, container, events } = options
+        const control = Control.buildSync(template, options, container, events)
+        return new StereoPannerNode(sound, control)
+    }
+    constructor(sound, control, options = {}) {
+        options = Control.buildOptions(StereoPannerNode.defaults, options)
+        this.control = control
+        this.container = control.container
+        this.node = new window.StereoPannerNode(sound.context, options)
+        const { container } = control
+        const { node } = this
+        const controls = container.querySelector('.node-controls')
+        const pan = new Slider(container.querySelector('.pan'))
+        pan.value.innerText = node.pan.value
+        pan.slider.value = node.pan.value
+        this.control.on('toggle-pan', function () {
+            controls.classList.toggle('collapsed')
+        })
+        this.control.on('set-pan', function () {
+            node.pan.value = pan.slider.value
+            pan.value.innerText = pan.slider.value
+        })
+    }
+}
+
+export class AudioNodes {
+    static AnalyserNode = AnalyserNode
+    static BiquadFilterNode = BiquadFilterNode
+    static DelayNode = DelayNode
+    static DynamicsCompressorNode = DynamicsCompressorNode
+    static GainNode = GainNode
+    static StereoPannerNode = StereoPannerNode
+    static split(input, outputs) {
+        // split one nodes connection into all output nodes
+        for (let oCnt = 0; oCnt < outputs.length; oCnt++) {
+            const output = outputs[oCnt]
+            input.connect(output)
         }
-    })
-}
-
-export function GainNode(node, control) {
-    const { element } = control
-    const gain = element.querySelector('#gain')
-    gain.value = node.gain.value
-    gain.parentNode.children[1].innerText = `${node.gain.value} dB`
-    control.on('set-gain', function () {
-        node.gain.value = gain.value
-        gain.parentNode.children[1].innerText = `${gain.value} dB`
-    })
-}
-
-export function StereoPannerNode(node, control) {
-    const { element } = control
-    const pan = element.querySelector('#pan')
-    pan.value = node.pan.value
-    pan.parentNode.children[1].innerText = `${node.pan.value}`
-    control.on('set-panner', function () {
-        node.pan.value = pan.value
-        pan.parentNode.children[1].innerText = `${pan.value}`
-    })
-}
-
-export function Equalizer(eq, control) {
-    const { element } = control
-    const low = element.querySelector('#low')
-    const mid = element.querySelector('#mid')
-    const high = element.querySelector('#high')
-    const lowGain = element.querySelector('#low-gain')
-    const midGain = element.querySelector('#mid-gain')
-    const highGain = element.querySelector('#high-gain')
-    const lowQ = element.querySelector('#low-Q')
-    const midQ = element.querySelector('#mid-Q')
-    const highQ = element.querySelector('#high-Q')
-    low.value = eq.low.frequency.value
-    mid.value = eq.mid.frequency.value
-    high.value = eq.high.frequency.value
-    lowGain.value = eq.lowGain.gain.value
-    midGain.value = eq.midGain.gain.value
-    highGain.value = eq.highGain.gain.value
-    control.on('set-low', function () {
-        eq.low.frequency.value = low.value
-        low.parentNode.children[1].innerText = `${low.value} Hz`
-    })
-    control.on('set-mid', function () {
-        eq.mid.frequency.value = mid.value
-        mid.parentNode.children[1].innerText = `${mid.value} Hz`
-    })
-    control.on('set-high', function () {
-        eq.high.frequency.value = high.value
-        high.parentNode.children[1].innerText = `${high.value} Hz`
-    })
-    control.on('set-low-gain', function () {
-        eq.lowGain.gain.value = lowGain.value
-        lowGain.parentNode.children[1].innerText = `${lowGain.value} dB`
-    })
-    control.on('set-mid-gain', function () {
-        eq.midGain.gain.value = midGain.value
-        midGain.parentNode.children[1].innerText = `${midGain.value} dB`
-    })
-    control.on('set-high-gain', function () {
-        eq.highGain.gain.value = highGain.value
-        highGain.parentNode.children[1].innerText = `${highGain.value} dB`
-    })
-    control.on('set-low-Q', function () {
-        eq.low.Q.value = lowQ.value
-        lowQ.parentNode.children[1].innerText = `${lowQ.value} si`
-    })
-    control.on('set-mid-Q', function () {
-        eq.mid.Q.value = midQ.value
-        midQ.parentNode.children[1].innerText = `${midQ.value} si`
-    })
-    control.on('set-high-Q', function () {
-        eq.high.Q.value = highQ.value
-        highQ.parentNode.children[1].innerText = `${highQ.value} si`
-    })
-}
-
-export function DelayAdd(delayAdd, control) {
-    const { element } = control
-    const delay = element.querySelector('#delay')
-    const gain = element.querySelector('#gain')
-    delay.value = delayAdd.delay.delayTime.value
-    delay.parentNode.children[1].innerText = `${delayAdd.delay.delayTime.value} s`
-    gain.value = delayAdd.gain.gain.value
-    gain.parentNode.children[1].innerText = `${delayAdd.gain.gain.value} Hz`
-    control.on('set-delay', function () {
-        delayAdd.delay.delayTime.value = delay.value
-        delay.parentNode.children[1].innerText = `${delay.value} s`
-    })    
-    control.on('set-gain', function () {
-        delayAdd.gain.gain.value = gain.value
-        gain.parentNode.children[1].innerText = `${gain.value} Hz`
-    })    
+    }
+    static merge(inputs, output) {
+        // merge all inputs connections into one output node
+        for (let iCnt = 0; iCnt < inputs.length; iCnt++) {
+            const input = inputs[iCnt]
+            input.connect(output)
+        }
+    }
+    static addScrollEffect(container) {
+        const scroll = container.parentElement
+        scroll.addEventListener('wheel', (event) => {
+            if (event.deltaY !== 0) {
+                event.preventDefault()
+                const scrollAmount = event.deltaY
+                const currentScrollLeft = container.scrollLeft
+                const newScrollLeft = currentScrollLeft + scrollAmount
+                scroll.scrollTo({
+                    left: newScrollLeft,
+                    behavior: 'smooth'
+                })
+            }
+        })
+        return container
+    }
 }

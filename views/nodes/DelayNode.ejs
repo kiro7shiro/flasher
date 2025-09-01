@@ -1,15 +1,6 @@
-<div>
-    <% if (locals.id===null || locals.id===undefined) locals.id='delayNode' %>
-    <div id="<%= id %>" class="w3-row">
-        <div class="w3-padding">
-            delay
-        </div>
-        <div class="w3-row w3-padding">
-            <div class="w3-col" style="width:60px">&nbsp;</div>
-            <div class="w3-rest">
-                <%- await include('Slider', { id: 'delay' , min: '0' , max: '1000' , value: '0' ,
-                    action:'set-delay' }) %>
-            </div>
-        </div>
+<div class="node-controls delay-node">
+    <div class="node-header" data-event="click" data-action="toggle-delay" data-detail="delay">delay</div>
+    <div class="controls">
+        <%- include('/views/Slider.ejs', { event: 'change', action: 'set-delay', detail: 'delayTime', min: 1, max: 180, step: 1, value: 0, header: 'sec' }) %>
     </div>
 </div>

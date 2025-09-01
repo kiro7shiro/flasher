@@ -1,0 +1,33 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Graph</title>
+    <link rel="stylesheet" href="topology.css">
+</head>
+<body>
+    <div class="graph">
+        <div class="node source">
+            <div class="label">Source</div>
+        </div>
+        <div class="node gain">
+            <div class="label">Gain</div>
+        </div>
+        <div class="node filter">
+            <div class="label">Filter</div>
+        </div>
+        <div class="node delay">
+            <div class="label">Delay</div>
+        </div>
+        <div class="node analyzer">
+            <div class="label">Analyzer</div>
+        </div>
+        <div class="connection source-gain"></div>
+        <div class="connection gain-filter"></div>
+        <div class="connection filter-delay"></div>
+        <div class="connection delay-analyzer"></div>
+    </div>
+</body>
+</html>

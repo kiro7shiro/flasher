@@ -1,4 +1,4 @@
-import { addEvents, Control } from '../Control.js'
+//import { addEvents, Control } from '../Control.js'
 import { Screen } from './Screen.js'
 import * as nodes from '../nodes/nodes.js'
 
@@ -161,4 +161,4 @@ class Bars {
     }
 }
 
-export { Bars }
+

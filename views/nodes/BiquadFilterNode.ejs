@@ -1,37 +1,21 @@
-<div>
-    <% if (locals.id===null || locals.id===undefined) locals.id='filter' %>
-    <% if (locals.type===null || locals.type===undefined) locals.type='none' %>
-    <div id="<%= id %>" class="w3-row">
-        <div class="w3-row w3-padding">
-            <%= type %>
-        </div>
-        <div class="w3-row w3-padding">
-            <div class="w3-col" style="width:60px">freq</div>
-            <div class="w3-rest">
-                <%- await include('Slider', { id: 'frequency' , min: '20' , max: '22000' , value: '0' ,
-                    action:'set-filter', detail: 'frequency' }) %>
+<div class="node-controls biquadFilter-node">
+    <div class="node-header" data-event="click" data-action="toggle-filter" data-detail="filter">filter</div>
+    <div class="controls">
+        <div class="w3-dropdown-hover" style="height: fit-content;background-color: #1b1b1b; color: #fff;">
+            <button class="w3-button"><i class="fa fa-sliders"></i> &nbsp;<%= type %></button>
+            <div class="w3-dropdown-content w3-bar-block w3-border" style="z-index:4">
+                <a data-event="click" data-action="set-filter" data-detail="lowpass" class="w3-bar-item w3-button">lowpass</a>
+                <a data-event="click" data-action="set-filter" data-detail="highpass" class="w3-bar-item w3-button">highpass</a>
+                <a data-event="click" data-action="set-filter" data-detail="bandpass" class="w3-bar-item w3-button">bandpass</a>
+                <a data-event="click" data-action="set-filter" data-detail="lowshelf" class="w3-bar-item w3-button">lowshelf</a>
+                <a data-event="click" data-action="set-filter" data-detail="highshelf" class="w3-bar-item w3-button">highshelf</a>
+                <a data-event="click" data-action="set-filter" data-detail="notch" class="w3-bar-item w3-button">notch</a>
+                <a data-event="click" data-action="set-filter" data-detail="peaking" class="w3-bar-item w3-button">peaking</a>
             </div>
         </div>
-        <div class="w3-row w3-padding">
-            <div class="w3-col" style="width:60px">detune</div>
-            <div class="w3-rest">
-                <%- await include('Slider', { id: 'detune' , min: '0' , max: '1' , value: '0' , step: 0.05 ,
-                    action:'set-filter', detail: 'detune' }) %>
-            </div>
-        </div>
-        <div class="w3-row w3-padding">
-            <div class="w3-col" style="width:60px">Q</div>
-            <div class="w3-rest">
-                <%- await include('Slider', { id: 'Q' , min: '1' , max: '1000', step:'0.001' , value: '0' ,
-                    action:'set-filter', detail: 'Q' }) %>
-            </div>
-        </div>
-        <div class="w3-row w3-padding">
-            <div class="w3-col" style="width:60px">gain</div>
-            <div class="w3-rest">
-                <%- await include('Slider', { id: 'gain' , min: '-40' , max: '40' , value: '0' ,
-                    action:'set-filter', detail: 'gain' }) %>
-            </div>
-        </div>
+        <%- include('/views/Slider.ejs', { event: 'change', action: 'set-filter', detail: 'frequency', min: 20, max: 24000, step: 1, value: 0, header: 'freq' }) %>
+        <%- include('/views/Slider.ejs', { event: 'change', action: 'set-filter', detail: 'detune', min: 0, max: 1, step: 0.1, value: 0, header: 'detune' }) %>
+        <%- include('/views/Slider.ejs', { event: 'change', action: 'set-filter', detail: 'Q', min: 0, max: 1000, step: 1, value: 0, header: 'Q' }) %>
+        <%- include('/views/Slider.ejs', { event: 'change', action: 'set-filter', detail: 'gain', min: -40, max: 40, step: 1, value: 0, header: 'gain' }) %>
     </div>
 </div>

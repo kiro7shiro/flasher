@@ -1,0 +1,74 @@
+/* style.css */
+.graph {
+    position: relative;
+    width: 800px;
+    height: 600px;
+    border: 1px solid #ccc;
+}
+
+.node {
+    position: absolute;
+    width: 100px;
+    height: 50px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f0f0f0;
+    text-align: center;
+    padding: 10px;
+}
+
+.source {
+    top: 100px;
+    left: 100px;
+}
+
+.gain {
+    top: 200px;
+    left: 250px;
+}
+
+.filter {
+    top: 300px;
+    left: 400px;
+}
+
+.delay {
+    top: 400px;
+    left: 550px;
+}
+
+.analyzer {
+    top: 500px;
+    left: 700px;
+}
+
+.connection {
+    position: absolute;
+    width: 2px;
+    height: 50px;
+    background-color: #ccc;
+}
+
+.source-gain {
+    top: 125px;
+    left: 150px;
+    height: 75px;
+}
+
+.gain-filter {
+    top: 225px;
+    left: 300px;
+    height: 75px;
+}
+
+.filter-delay {
+    top: 325px;
+    left: 450px;
+    height: 75px;
+}
+
+.delay-analyzer {
+    top: 425px;
+    left: 600px;
+    height: 75px;
+}

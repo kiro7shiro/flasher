@@ -1,7 +1,6 @@
-import { Control } from '../Control.js'
+import { Control } from '/src/Control.js'
 import { Screen } from './Screen.js'
-import * as nodes from '../nodes/nodes.js'
-import { disconnect } from './index.js'
+import { AudioNodes } from '../nodes/nodes.js'
 
 const timerDebugTemplate = '<div class="w3-text-white">fps: <%= rate.toFixed(2) %></div>'
 
@@ -62,39 +61,58 @@ class MeterSplitter extends ChannelSplitterNode {
     }
 }
 
-class Meter {
-    constructor(source, { sound, width, height, fftSize = 256, smoothingTimeConstant = 0.33, colors = defaultColors } = {}) {
-        //
+export class Meter {
+    static defaults = {
+        template: '/views/Visualizer.ejs',
+        data: { header: 'meter' },
+        container: 'div',
+        events: ['click'],
+        width: 512,
+        height: 128,
+        fftSize: 256,
+        smoothingTimeConstant: 0.33,
+        colors: defaultColors
+    }
+    static async build(sound, options = {}) {
         if (!sound) throw new Error('A sound instance must be given.')
-        if (width === null && width === undefined) throw new Error('Width must be given.')
-        if (height === null && height === undefined) throw new Error('Height must be given.')
-        //
-        this.control = new Control(source)
-        this.element = this.control.element
-        //
-        this.sound = sound
-
-        this.analyzer0 = sound.createAnalyzer({ fftSize, smoothingTimeConstant })
-        this.analyzer1 = sound.createAnalyzer({ fftSize, smoothingTimeConstant })
-
-        const splitter = new MeterSplitter(sound.context, { numberOfOutputs: 2 }, this.analyzer0, this.analyzer1)
-
-        this.analyzer = splitter
-
-        this.analyzer.connect(this.analyzer0, 0)
-        this.analyzer.connect(this.analyzer1, 1)
-
-        this.buffer0 = new Uint8Array(this.analyzer0.frequencyBinCount)
-        this.buffer1 = new Uint8Array(this.analyzer1.frequencyBinCount)
+        options = Control.buildOptions(Meter.defaults, options)
+        const { template, data, container, events } = options
+        const control = await Control.build(template, data, container, events)
+        return new Meter(sound, control, options)
+    }
+    static buildSync(sound, options = {}) {
+        if (!sound) throw new Error('A sound instance must be given.')
+        options = Control.buildOptions(Meter.defaults, options)
+        const { template, data, container, events } = options
+        const control = Control.buildSync(template, data, container, events)
+        return new Meter(sound, control, options)
+    }
+    constructor(sound, control, options = {}) {
+        // options
+        options = Control.buildOptions(Meter.defaults, options)
+        const { width, height, colors, fftSize, smoothingTimeConstant } = options
+        // controls
+        this.control = control
+        this.container = control.container
+        this.analyzerL = new AnalyserNode(sound.context, { fftSize, smoothingTimeConstant })
+        this.analyzerR = new AnalyserNode(sound.context, { fftSize, smoothingTimeConstant })
+        this.analyzer = new MeterSplitter(sound.context, { numberOfOutputs: 2 }, this.analyzerL, this.analyzerR)
+        this.analyzer.connect(this.analyzerL, 0)
+        this.analyzer.connect(this.analyzerR, 1)
+        this.bufferL = new Uint8Array(this.analyzerL.frequencyBinCount)
+        this.bufferR = new Uint8Array(this.analyzerR.frequencyBinCount)
         this.audioGraph = []
-        this.analyzer0.maxDecibels = -40
-        this.analyzer1.maxDecibels = -40
-        // ui event handling
-        nodes.AudioNodes(this)
-        nodes.AnalyserNode(this)
+        this.analyzer.minDecibels = -100
+        this.analyzer.maxDecibels = -40
+        this.analyzer.smoothingTimeConstant = 0.33
+        // ui events
+        // TODO : make audio nodes a control too
+        this.audioNodes = AudioNodes.addScrollEffect(this.container.querySelector('.audio-nodes'))
+        this.analyzerControl = AudioNodes.AnalyserNode.buildSync(this.analyzer)
+        this.audioNodes.insertAdjacentElement('afterbegin', this.analyzerControl.container)
         // offsets for the scale canvas
-        this.scaleOffsetX = 30
-        this.scaleOffsetY = -5
+        this.scaleOffsetX = 37
+        this.scaleOffsetY = 10
         this.borderBottom = 50
         // animation
         this.colors = colors
@@ -110,7 +128,7 @@ class Meter {
         this.offscreen.width = this.offscreen.width - this.scaleOffsetX
         this.offscreen.height = this.offscreen.height - this.borderBottom
         // create pixel buffer
-        const { offscreen, buffer0: buffer } = this
+        const { offscreen, bufferL: buffer } = this
         this.pixels0 = offscreen.context.createImageData(offscreen.width, offscreen.height / 4)
         this.pixels1 = offscreen.context.createImageData(offscreen.width, offscreen.height / 4)
         // create scale canvas
@@ -168,9 +186,8 @@ class Meter {
             }
         })
         // append screen to container
-        const { element } = this
-        const screenContainer = element.querySelector('#screen-container')
-        screenContainer.append(this.screen.container)
+        const screenContainer = this.container.querySelector('.screen-container')
+        screenContainer.insertAdjacentElement('beforeend', this.screen.container)
     }
     draw(timestamp) {
         //
@@ -189,37 +206,32 @@ class Meter {
             const { scaleOffsetX, scaleOffsetY, screen } = this
             screen.clear()
             screen.context.drawImage(offscreen.canvas, scaleOffsetX, scaleOffsetY)
-            screen.debug(ejs.render(timerDebugTemplate, timer))
+            //screen.debug(ejs.render(timerDebugTemplate, timer))
         }
         this.handle = requestAnimationFrame(this.draw.bind(this))
     }
     update() {
-        const { analyzer0, analyzer1, buffer0, buffer1, pixels0, pixels1 } = this
+        const { analyzerL, analyzerR, bufferL, bufferR, pixels0, pixels1 } = this
         // update buffer
-        //analyzer.getByteTimeDomainData(buffer)
-        analyzer0.getByteFrequencyData(buffer0)
-        analyzer1.getByteFrequencyData(buffer1)
+        analyzerL.getByteFrequencyData(bufferL)
+        analyzerR.getByteFrequencyData(bufferR)
         // update pixels
-
         for (let pIndex = 0; pIndex < pixels0.data.length; pIndex += 4) {
             pixels0.data[pIndex + 3] = 0
             pixels1.data[pIndex + 3] = 0
         }
-
         const amplitude0 = Math.sqrt(
-            buffer0.reduce(function (accu, curr) {
+            bufferL.reduce(function (accu, curr) {
                 return (accu += curr * curr)
-            }, 0) / buffer0.length
+            }, 0) / bufferL.length
         )
         const amplitude1 = Math.sqrt(
-            buffer1.reduce(function (accu, curr) {
+            bufferR.reduce(function (accu, curr) {
                 return (accu += curr * curr)
-            }, 0) / buffer1.length
+            }, 0) / bufferR.length
         )
-
         const endX0 = Math.round((amplitude0 / 255) * pixels0.width)
         const endX1 = Math.round((amplitude1 / 255) * pixels0.width)
-        // const red = y * (width * 4) + x * 4
         for (let y = 0; y < pixels0.height; y++) {
             for (let x = 0; x <= endX0; x++) {
                 const pIndex = (y * pixels0.width + x) * 4
@@ -244,5 +256,3 @@ class Meter {
         }
     }
 }
-
-export { Meter }

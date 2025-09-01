@@ -1,0 +1,17 @@
+<div class="w3-row">
+    <span class="w3-large w3-padding">Playlist</span>
+</div>
+<div class="w3-row">
+    <ul class="playlist w3-ul w3-small">
+        <% for (let sCnt=0; sCnt < queue.length; sCnt++) { %>
+        <% const source=queue[sCnt] %>
+        <% if (source.type === 'Stream') { %>
+        <%- include('/views/Stream.ejs', {source, index: sCnt}) %>
+        <% } else { %>
+        <li class="w3-button" style="width: 100%;" data-event="click" data-action="select" data-index="<%= sCnt %>">
+            <%= source.name %>
+        </li>
+        <% } %>
+        <% } %>
+    </ul>
+</div>

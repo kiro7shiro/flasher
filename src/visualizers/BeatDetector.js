@@ -1,4 +1,4 @@
-import { addEvents, Control } from '../Control.js'
+//import { addEvents, Control } from '../Control.js'
 import { Screen } from './Screen.js'
 import * as visualizers from './index.js'
 import * as nodes from '../nodes/nodes.js'
@@ -190,3 +190,52 @@ class BeatDetector {
 }
 
 export { BeatDetector }
+
+/* // Load the audio file
+const audioContext = new AudioContext();
+const audioBuffer = await audioContext.decodeAudioData(await fetch('audio_file.mp3').then(response => response.arrayBuffer()));
+
+// Create an Analyser node to extract frequency data
+const analyser = audioContext.createAnalyser();
+analyser.fftSize = 2048;
+analyser.smoothingTimeConstant = 0.3;
+
+// Connect the audio buffer to the Analyser node
+const source = audioContext.createBufferSource();
+source.connect(analyser);
+analyser.connect(audioContext.destination);
+source.start();
+
+// Get the frequency data
+const frequencyData = new Uint8Array(analyser.frequencyBinCount);
+analyser.getByteFrequencyData(frequencyData);
+
+// Apply a beat detection algorithm
+// For example, using the Fourier Transform
+const bpm = detectBpmUsingFourierTransform(frequencyData);
+
+// Print the estimated BPM
+console.log(`Estimated BPM: ${bpm}`);
+
+// Beat detection algorithm using Fourier Transform
+function detectBpmUsingFourierTransform(frequencyData) {
+  const sampleRate = audioContext.sampleRate;
+  const fftSize = analyser.fftSize;
+  const binSize = sampleRate / fftSize;
+
+  // Find the peak frequency
+  let peakFrequency = 0;
+  let peakAmplitude = 0;
+  for (let i = 0; i < frequencyData.length; i++) {
+    const frequency = i * binSize;
+    const amplitude = frequencyData[i];
+    if (amplitude > peakAmplitude) {
+      peakFrequency = frequency;
+      peakAmplitude = amplitude;
+    }
+  }
+
+  // Estimate the BPM
+  const bpm = 60 / (peakFrequency / sampleRate);
+  return bpm;
+} */

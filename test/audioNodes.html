@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>audio-nodes</title>
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="audioNodesStyles.css">
+</head>
+
+<body>
+    <div class="center">
+        <div class="audio-nodes">
+            <div class="node-controls biquadfilter-node">
+                <div class="node-header">
+                    <h3>filter</h3>
+                </div>
+                <div class="controls">
+                    <div class="slider-container">
+                        <div class="value">NaN</div>
+                        <input class="slider" type="range" name="frequency">
+                        <div class="header">freq</div>
+                    </div>
+                    <div class="slider-container">
+                        <div class="value">NaN</div>
+                        <input class="slider" type="range" name="detune">
+                        <div class="header">detune</div>
+                    </div>
+                    <div class="slider-container">
+                        <div class="value">NaN</div>
+                        <input class="slider" type="range" name="Q">
+                        <div class="header">Q</div>
+                    </div>
+                    <div class="slider-container">
+                        <div class="value">NaN</div>
+                        <input class="slider" type="range" name="gain">
+                        <div class="header">gain</div>
+                    </div>
+                </div>
+            </div>
+            <div class="node-controls gain-node">
+                <div class="node-header">
+                    <h3>gain</h3>
+                </div>
+                <div class="controls">
+                    <div class="slider-container">
+                        <div class="value">NaN</div>
+                        <input class="slider" type="range" name="gain">
+                        <div class="header">dB</div>
+                    </div>
+                </div>
+            </div>
+            <div class="node-controls panner-node">
+                <div class="node-header">
+                    <h3>panner</h3>
+                </div>
+                <div class="controls">
+                    <div class="slider-container">
+                        <div class="value">NaN</div>
+                        <input class="slider" type="range" name="balance">
+                        <div class="header">L/R</div>
+                    </div>
+                </div>
+            </div>
+            <div class="node-controls delay-node">
+                <div class="node-header">
+                    <h3>delay</h3>
+                </div>
+                <div class="controls">
+                    <div class="slider-container">
+                        <div class="value">NaN</div>
+                        <input class="slider" type="range" name="delay">
+                        <div class="header">ms</div>
+                    </div>
+                </div>
+            </div>
+            <div class="node-controls compressor-node">
+                <div class="node-header">
+                    <h3>compressor</h3>
+                </div>
+                <div class="controls">
+                    <div class="slider-container">
+                        <div class="value">NaN</div>
+                        <input class="slider" type="range" name="threshold">
+                        <div class="header">thres</div>
+                    </div>
+                    <div class="slider-container">
+                        <div class="value">NaN</div>
+                        <input class="slider" type="range" name="knee">
+                        <div class="header">knee</div>
+                    </div>
+                    <div class="slider-container">
+                        <div class="value">NaN</div>
+                        <input class="slider" type="range" name="ratio">
+                        <div class="header">ratio</div>
+                    </div>
+                    <div class="slider-container">
+                        <div class="value">NaN</div>
+                        <input class="slider" type="range" name="attack">
+                        <div class="header">atc</div>
+                    </div>
+                    <div class="slider-container">
+                        <div class="value">NaN</div>
+                        <input class="slider" type="range" name="release">
+                        <div class="header">rls</div>
+                    </div>
+                </div>
+            </div>
+            <div class="node-controls analyser-node">
+                <div class="node-header">
+                    <h3>analyser</h3>
+                </div>
+                <div class="controls">
+                    <div class="slider-container">
+                        <div class="value">NaN</div>
+                        <input class="slider" type="range" name="minDB">
+                        <div class="header">minDB</div>
+                    </div>
+                    <div class="slider-container">
+                        <div class="value">NaN</div>
+                        <input class="slider" type="range" name="maxDB">
+                        <div class="header">maxDB</div>
+                    </div>
+                    <div class="slider-container">
+                        <div class="value">NaN</div>
+                        <input class="slider" type="range" name="STC">
+                        <div class="header">STC</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="audioNodes.js"></script>
+</body>
+
+</html>

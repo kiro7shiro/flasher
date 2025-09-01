@@ -1,15 +1,13 @@
+<% if (locals.event===null || locals.event===undefined) locals.event='change' %>
 <% if (locals.action===null || locals.action===undefined) locals.action='slide' %>
-<% if (locals.detail===null || locals.detail===undefined) locals.detail='si' %>
-<% if (locals.id===null || locals.id===undefined) locals.id='Slider1' %>
+<% if (locals.detail===null || locals.detail===undefined) locals.detail='set-slider' %>
 <% if (locals.min===null || locals.min===undefined) locals.min=0 %>
 <% if (locals.max===null || locals.max===undefined) locals.max=100 %>
 <% if (locals.step===null || locals.step===undefined) locals.step=1 %>
 <% if (locals.value===null || locals.value===undefined) locals.value=50 %>
-<div id="slider-container" class="w3-container w3-padding">
-    <input class="slider slider-square" type="range" name="slider"
-        id="<%= id %>" min="<%= min %>" max="<%= max %>" step="<%= step %>" data-action="<%= action %>"
-        data-detail="<%= detail %>">
-    <label class="w3-center w3-padding" for="slider">
-        <%= value %> si
-    </label>
+<% if (locals.header===null || locals.header===undefined) locals.header='head' %>
+<div class="slider-container <%= detail %>">
+    <div class="value"><%= value %></div>
+    <input class="slider" type="range" data-event="<%= event %>" data-action="<%= action %>" data-detail="<%= detail %>" min="<%= min %>" max="<%= max %>" step="<%= step %>" value="<%= value %>">
+    <div class="header"><%= header%></div>
 </div>

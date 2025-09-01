@@ -1,3 +1,6 @@
+// TODO : Sound
+// [ ]  : connect video elements, too
+
 class Sound {
     constructor() {
         this.connected = false
@@ -22,11 +25,16 @@ class Sound {
         filter.type = type
         return filter
     }
+    /**
+     * Connects the audio element to the audio context. Creates a new media
+     * element source from the element and connects it to the destination of
+     * the context. This will allow the audio to be heard.
+     * @param {HTMLElement} element - The element to connect to the context.
+     */
     connect(element) {
         if (!this.context) this.context = new AudioContext()
         const { context } = this
         this.element = element
-        // TODO : connect video elements, too
         /* this.stream = element.mozCaptureStream()
         this.source = context.createMediaStreamSource(this.element) */
         this.source = context.createMediaElementSource(this.element)

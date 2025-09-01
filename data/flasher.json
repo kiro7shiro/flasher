@@ -1,0 +1,31 @@
+{
+    "lastPlayed": {
+        "type": "STREAM",
+        "ref": {
+            "name": "sunshineLive",
+            "version": null
+        },
+        "channels": [
+            {
+                "name": "melodicBeats",
+                "displayName": "melodicBeats",
+                "channelId": 0,
+                "streams": [
+                    {
+                        "url": "https://stream.sunshine-live.de/MelodicB/mp3-192/homepage/"
+                    }
+                ]
+            },
+            {
+                "name": "hardstyle",
+                "displayName": "hardstyle",
+                "channelId": 1,
+                "streams": [
+                    {
+                        "url": "https://stream.sunshine-live.de/hardstyle/mp3-192/homepage"
+                    }
+                ]
+            }
+        ]
+    }
+}

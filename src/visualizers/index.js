@@ -1,3 +1,10 @@
+// TODO :
+// [ ]  : implement stringify() function for saving
+
+// I want a single file for the api
+// I want all class constructors
+// I want all class names
+
 import * as visualizers from './visualizers.js'
 import { CustomNode } from '../nodes/CustomNode.js'
 import { customNodes } from '../nodes/index.js'
@@ -27,10 +34,8 @@ export function appendNodeControls(visualizer, controls) {
     const { element } = visualizer
     const nodesContainer = element.querySelector('.audio-nodes')
     const analyzer = nodesContainer.querySelector('#analyzer')
-    //nodesContainer.append(controls.element)
     nodesContainer.insertBefore(controls.element, analyzer)
     nodesContainer.insertBefore(document.createElement('hr'), analyzer)
-    //nodesContainer.insertAdjacentElement('afterbegin', controls.element)
 }
 
 /**
@@ -72,7 +77,7 @@ export function connect(sound, visualizer) {
     } else {
         sound.source.connect(visualizer.analyzer)
     }
-    // FIX : single responsibility
+    // FIXME : single responsibility, the app should control the animation
     const start = sound.context.currentTime * 1000
     visualizer.timer.last = 0
     visualizer.draw(start)
@@ -83,7 +88,7 @@ export function connect(sound, visualizer) {
  * @param {Object} visualizer
  */
 export function disconnect(visualizer) {
-    // FIX : single responsibility 
+    // FIXME : single responsibility, the app should control the animation
     cancelAnimationFrame(visualizer.handle)
     visualizer.audioGraph.map(function (node) {
         if (node instanceof CustomNode) {
@@ -103,5 +108,4 @@ export function selectable() {
     return Object.keys(visualizers)
 }
 
-// TODO : for saving
 export function stringify(visualizer) {}

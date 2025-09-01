@@ -1,50 +1,77 @@
-/* The slider itself */
-.slider-square {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    width: 60%;
-    height: 12px;
-    background: #d3d3d3;
-    outline: none;
-    opacity: 0.7;
-    -webkit-transition: opacity 0.15s ease-in-out;
-    transition: opacity 0.15s ease-in-out;
-}
-
-/* Mouse-over effects */
-.slider:hover {
-    opacity: 1; /* Fully shown on mouse-over */
-}
-
-/* The slider handle */
-.slider::-webkit-slider-thumb {
-    -webkit-appearance: none; /* Override default look */
-    -moz-appearance: none;
-    appearance: none;
-    width: 18px; /* Set a specific slider handle width */
-    height: 18px; /* Slider handle height */
-    background: #666666; /* Green background */
-    cursor: pointer; /* Cursor on hover */
-}
-
-.slider::-moz-range-thumb {
-    width: 18px; /* Set a specific slider handle width */
-    height: 18px; /* Slider handle height */
-    background: #666666; /* Green background */
-    cursor: pointer; /* Cursor on hover */
-}
-
 /*             */
 /* FLASHER 0.1 */
 /*             */
+:root {
+    --audio-nodes-max-height: 30vh;
+}
+
 body {
     background-color: #1b1b1b;
 }
 
+.visualizers-tracks {
+    display: grid;
+    grid-auto-flow: row;
+    grid-auto-rows: auto;
+    grid-auto-columns: 1fr;
+    gap: 0px 0px;
+}
+
+.visualizer-track {
+    /* layout */
+    border: 1px solid #797979;
+    padding: 7px;
+    /* grid */
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: auto;
+    grid-template-columns: 1fr 1fr;
+    /* grid-template-rows: 0.2fr 0.8fr; */
+    gap: 0px 0px;
+}
+
+.visualizer-track-header {
+    display: grid;
+    grid-row-start: 1;
+    grid-row-end: 2;
+}
+
 .audio-nodes {
-    display: none;
-    max-height: 32vh;
-    overflow: scroll;
+    /* layout */
+    max-height: var(--audio-nodes-max-height);
+    /* min-height: 50vh; */
+    padding: 16px;
+    /* grid */
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: auto;
+    grid-auto-rows: 1fr;
+    grid-template-rows: 1fr;
+    gap: 0px 16px;
+    align-content: center;
+    /* justify-content: center; */
+    grid-row-start: 2;
+    grid-row-end: 3;
+}
+
+.audio-nodes-scroll {
+    max-height: var(--audio-nodes-max-height);
+    /* min-height: 50vh; */
+    display: grid;
+    justify-items: end;
+    /* scroll */
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    scroll-behavior: smooth;
+}
+
+.screen-container {
+    display: grid;
+    grid-row-start: 2;
+    grid-row-end: 3;
+    align-content: center;
+    justify-content: center;
 }
 
 .addFilterMenu {
@@ -88,17 +115,4 @@ body {
     100% {
         color: #6666ff;
     }
-}
-
-.selected-visualizer {
-    border: 1px solid #e8e6e3;
-}
-
-.sources-list {
-    overflow-y: scroll;
-    overflow-x: hidden;
-}
-
-.sources-list-item {
-    width: 300px;
 }

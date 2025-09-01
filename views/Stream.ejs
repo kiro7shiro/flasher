@@ -1,0 +1,13 @@
+<li class="w3-container">
+    <% console.log(locals) %>
+    <% const firstChannel = source.channels[0] %>
+    <div><%= firstChannel.displayName %></div>
+    <div class="w3-container">
+        <div class="w3-button" data-event="click" data-action="select" data-index="<%= index %>">
+            <%= firstChannel.subTitle %>
+        </div>
+        <div class="w3-right">
+            <img src="<%= firstChannel.coverImages["64_64.png"] %>" style="height: 48px;">
+        </div>
+    </div>
+</li>

@@ -1,5 +1,7 @@
-import { mapNumToRange } from '../math.js'
-import { Control } from '../Control.js'
+// TODO :
+// [ ]  : fix cells mapping
+
+//import { Control } from '../Control.js'
 import { Screen } from './Screen.js'
 import * as nodes from '../nodes/nodes.js'
 
@@ -43,10 +45,10 @@ class Grid {
         this.chunkSize = Math.max(this.buffer.length, this.cells.length) / Math.min(this.buffer.length, this.cells.length)
 
         //this.cellsMap = new Array(this.cells.length).fill(0).map((_, index) => index)
-        //this.cellsMap = new Array(this.cells.length).fill(0).map((_, index) => this.cells.length - index - 1)
-        this.cellsMap = new Array(this.cells.length).fill(0).map((_, index) => {
+        this.cellsMap = new Array(this.cells.length).fill(0).map((_, index) => this.cells.length - index - 1)
+        /* this.cellsMap = new Array(this.cells.length).fill(0).map((_, index) => {
             return index % 2 === 0 ? index : this.cells.length - index
-        })
+        }) */
         
         const startColor = new Color('hsl', [0, 100, 50])
         const endColor = new Color('hsl', [270, 100, 50])
