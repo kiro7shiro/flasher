@@ -7,11 +7,13 @@ export * from './Meter.js'
 
 import { Meter } from './Meter.js'
 import { Spectrum } from './Spectrum.js'
+import { Scope } from './Scope.js'
 import { CustomNode } from '../nodes/CustomNode.js'
 
 export class Visualizers {
     static Meter = Meter
     static Spectrum = Spectrum
+    static Scope = Scope
     static addNode(visualizer, node) {
         visualizer.audioGraph.push(node)
         visualizer.audioNodes.insertAdjacentElement('afterbegin', node.container)
