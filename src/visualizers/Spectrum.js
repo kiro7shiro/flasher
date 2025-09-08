@@ -50,8 +50,10 @@ export class Spectrum {
         container: 'div',
         events: ['click'],
         width: 600,
-        height: 512,
+        height: 256,
         fftSize: 512,
+        minDecibels: -100,
+        maxDecibels: 0,
         smoothingTimeConstant: 0,
         duration: 5000,
         direction: Spectrum.Animations.Right,
@@ -74,13 +76,14 @@ export class Spectrum {
     }
     constructor(sound, control, options = {}) {
         options = Control.buildOptions(Spectrum.defaults, options)
-        const { direction, effect, width, height, colors, fftSize, smoothingTimeConstant, duration } = options
+        const { direction, effect, width, height, colors, minDecibels, maxDecibels, fftSize, smoothingTimeConstant, duration } = options
         this.control = control
         this.container = control.container
         this.analyzer = new AnalyserNode(sound.context, { fftSize, smoothingTimeConstant })
         this.buffer = new Uint8Array(this.analyzer.frequencyBinCount)
         this.audioGraph = []
-        this.analyzer.maxDecibels = 0
+        this.analyzer.minDecibels = minDecibels
+        this.analyzer.maxDecibels = maxDecibels
         // ui events
         // TODO : make audio nodes a control too
         this.audioNodes = this.container.querySelector('.audio-nodes')
@@ -123,7 +126,7 @@ export class Spectrum {
         this.screen = new Screen(width, height)
         // append screen to container
         const screenContainer = this.container.querySelector('.screen-container')
-        screenContainer.insertAdjacentElement('beforeend', this.screen.container)
+        screenContainer.insertAdjacentElement('afterbegin', this.screen.container)
         // setup the animation
         if (direction === Spectrum.Animations.Up || direction === Spectrum.Animations.Down) {
             // make a horizontal line across the whole screen
@@ -308,14 +311,7 @@ export class Spectrum {
             screen.context.drawImage(scaleFrame.canvas, x, y)
         }
         // loop
-        if (timer.delta >= timer.interval) {
-            this.handle = requestAnimationFrame(this.draw.bind(this))
-        } else {
-            const self = this
-            setTimeout(function () {
-                self.handle = requestAnimationFrame(self.draw.bind(self))
-            }, timer.interval - timer.delta)
-        }
+        this.handle = requestAnimationFrame(this.draw.bind(this))
     }
     update() {
         const { analyzer, buffer, colors, line, scaleFrame, pixels } = this
