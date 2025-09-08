@@ -5,13 +5,14 @@ import { AudioNodes } from '../nodes/nodes.js'
 const timerDebugTemplate = '<div class="w3-text-white">fps: <%= rate.toFixed(2) %></div>'
 
 const defaultColors = (function () {
-    const startColor = new Color('#200020')
+    const startColor = new Color('#890189ff')
     const endColor = new Color('#e2dc18')
     const colorRamp = startColor.steps(endColor, {
-        space: 'lch',
+        space: 'srgb',
         outputSpace: 'srgb',
-        maxDeltaE: 3, // max deltaE between consecutive steps (optional)
-        steps: 256 // min number of steps
+        maxDeltaE: 1, // max deltaE between consecutive steps (optional)
+        steps: 1, // min number of steps
+        maxSteps: 128
     })
     colorRamp.map(function (color) {
         color.buffer = color
@@ -62,6 +63,12 @@ class MeterSplitter extends ChannelSplitterNode {
 }
 
 export class Meter {
+    static Animations = {
+        Up: 'Up',
+        Down: 'Down',
+        Left: 'Left',
+        Right: 'Right'
+    }
     static defaults = {
         template: '/views/Visualizer.ejs',
         data: { header: 'meter' },
@@ -70,7 +77,10 @@ export class Meter {
         width: 512,
         height: 128,
         fftSize: 256,
+        minDecibels: -100,
+        maxDecibels: -60,
         smoothingTimeConstant: 0.33,
+        direction: Meter.Animations.Right,
         colors: defaultColors
     }
     static async build(sound, options = {}) {
@@ -90,7 +100,7 @@ export class Meter {
     constructor(sound, control, options = {}) {
         // options
         options = Control.buildOptions(Meter.defaults, options)
-        const { width, height, colors, fftSize, smoothingTimeConstant } = options
+        const { direction, width, height, colors, fftSize, maxDecibels, minDecibels, smoothingTimeConstant } = options
         // controls
         this.control = control
         this.container = control.container
@@ -102,62 +112,120 @@ export class Meter {
         this.bufferL = new Uint8Array(this.analyzerL.frequencyBinCount)
         this.bufferR = new Uint8Array(this.analyzerR.frequencyBinCount)
         this.audioGraph = []
-        this.analyzer.minDecibels = -100
-        this.analyzer.maxDecibels = -40
-        this.analyzer.smoothingTimeConstant = 0.33
+        this.analyzer.minDecibels = minDecibels
+        this.analyzer.maxDecibels = maxDecibels
+        this.analyzer.smoothingTimeConstant = smoothingTimeConstant
         // ui events
         // TODO : make audio nodes a control too
         this.audioNodes = AudioNodes.addScrollEffect(this.container.querySelector('.audio-nodes'))
         this.analyzerControl = AudioNodes.AnalyserNode.buildSync(this.analyzer)
         this.audioNodes.insertAdjacentElement('afterbegin', this.analyzerControl.container)
-        // offsets for the scale canvas
-        this.scaleOffsetX = 37
-        this.scaleOffsetY = 10
-        this.borderBottom = 50
         // animation
+        this.direction = direction
         this.colors = colors
         this.timer = {
+            delta: 0,
             last: 0,
+            start: null,
             rate: 0,
             interval: 1000 / 60
         }
+        this.animator = {
+            sx: 0,
+            sy: 0,
+            sWidth: 0,
+            sHeight: 0,
+            dx: 0,
+            dy: 0,
+            dWidth: 0,
+            dHeight: 0,
+            barWidth: 0,
+            barHeightL: 0,
+            barHeightR: 0,
+            barGap: 0
+        }
         this.handle = null
-        // create offscreen
+        // create screen and bar
         this.screen = new Screen(width, height)
-        this.offscreen = new Screen(width, height)
-        this.offscreen.width = this.offscreen.width - this.scaleOffsetX
-        this.offscreen.height = this.offscreen.height - this.borderBottom
-        // create pixel buffer
-        const { offscreen, bufferL: buffer } = this
-        this.pixels0 = offscreen.context.createImageData(offscreen.width, offscreen.height / 4)
-        this.pixels1 = offscreen.context.createImageData(offscreen.width, offscreen.height / 4)
-        // create scale canvas
+        if (direction === Meter.Animations.Up) {
+            // create a bar from bottom up
+            this.animator.barWidth = Math.ceil(width / 5)
+            this.animator.barGap = this.animator.barWidth
+            this.offscreen = new Screen(this.animator.barWidth, height, { offscreen: true })
+            this.gradient = this.offscreen.context.createLinearGradient(this.animator.barWidth / 2, height, this.animator.barWidth / 2, 0)
+            this.gradient.addColorStop(0, colors[0])
+            this.gradient.addColorStop(1, colors[colors.length - 1])
+            this.offscreen.context.fillStyle = this.gradient
+            this.offscreen.context.fillRect(0, 0, this.animator.barWidth, height)
+        } else if (direction === Meter.Animations.Down) {
+            // create a bar from top to bottom
+            this.animator.barWidth = Math.ceil(width / 5)
+            this.animator.barGap = this.animator.barWidth
+            this.offscreen = new Screen(this.animator.barWidth, height, { offscreen: true })
+            this.gradient = this.offscreen.context.createLinearGradient(this.animator.barWidth / 2, 0, this.animator.barWidth / 2, height)
+            this.gradient.addColorStop(0, colors[0])
+            this.gradient.addColorStop(1, colors[colors.length - 1])
+            this.offscreen.context.fillStyle = this.gradient
+            this.offscreen.context.fillRect(0, 0, this.animator.barWidth, height)
+        } else if (direction === Meter.Animations.Left) {
+            // create the bar from right to left
+            this.animator.barWidth = Math.ceil(height / 5)
+            this.animator.barGap = this.animator.barWidth
+            this.offscreen = new Screen(width, this.animator.barWidth, { offscreen: true })
+            this.gradient = this.offscreen.context.createLinearGradient(width, this.animator.barWidth / 2, 0, this.animator.barWidth / 2)
+            this.gradient.addColorStop(0, colors[0])
+            this.gradient.addColorStop(1, colors[colors.length - 1])
+            this.offscreen.context.fillStyle = this.gradient
+            this.offscreen.context.fillRect(0, 0, width, this.animator.barWidth)
+        } else if (direction === Meter.Animations.Right) {
+            // create the bar from left to right
+            this.animator.barWidth = Math.ceil(height / 5)
+            this.animator.barGap = this.animator.barWidth
+            this.offscreen = new Screen(width, this.animator.barWidth, { offscreen: true })
+            this.gradient = this.offscreen.context.createLinearGradient(0, this.animator.barWidth / 2, width, this.animator.barWidth / 2)
+            this.gradient.addColorStop(0, colors[0])
+            this.gradient.addColorStop(1, colors[colors.length - 1])
+            this.offscreen.context.fillStyle = this.gradient
+            this.offscreen.context.fillRect(0, 0, width, this.animator.barWidth)
+        }
+        // setup the background
+        this.screen.canvas.style.left = '22px'
         this.scaleCanvas = this.screen.background
         this.scaleCanvas.width = width
-        this.scaleCanvas.height = height
-        this.scaleCanvas.style.position = 'absolute'
-        this.scaleCanvas.style.zIndex = 1
+        this.scaleCanvas.height = height + this.animator.barWidth * 2
+        this.scaleCanvas.style.zIndex = 3
         this.scaleChart = new Chart(this.scaleCanvas, {
             type: 'bar',
             data: {
-                labels: buffer.reduce(function (accu, curr, index) {
-                    accu.push(index)
-                    return accu
-                }, [])
+                labels: new Array(100).fill(0).map((_, i) => i + 1),
+                datasets: [
+                    {
+                        axis: 'y',
+                        data: []
+                    }
+                ]
             },
             options: {
+                indexAxis: 'y',
                 animation: false,
                 scales: {
                     y: {
-                        title: { display: true, text: ['|'] },
+                        title: {
+                            display: false,
+                            text: [['R\t\t|\t\tL']]
+                        },
+                        type: 'linear',
                         min: 0,
                         max: 1,
                         grid: {
                             display: false
                         },
                         ticks: {
-                            callback: function (value, index, ticks) {
-                                return null
+                            display: true,
+                            callback: function name(value, index, ticks) {
+                                if (value === 0.2) return 'R'
+                                if (value === 0.8) return 'L'
+                                return ''
                             }
                         }
                     },
@@ -165,6 +233,7 @@ export class Meter {
                         title: { display: true, text: 'dB' },
                         min: 0,
                         max: 100,
+                        type: 'linear',
                         reverse: true,
                         grid: {
                             display: true,
@@ -187,72 +256,109 @@ export class Meter {
         })
         // append screen to container
         const screenContainer = this.container.querySelector('.screen-container')
-        screenContainer.insertAdjacentElement('beforeend', this.screen.container)
+        screenContainer.insertAdjacentElement('afterbegin', this.screen.container)
     }
     draw(timestamp) {
-        //
-        const { timer, offscreen, pixels0, pixels1 } = this
-        const deltaTime = timestamp - timer.last
-        timer.rate = 1000 / deltaTime
-        //
-        if (deltaTime > timer.interval) {
-            // update
-            timer.last = timestamp
-            this.update()
-            //offscreen.clear()
-            offscreen.context.putImageData(pixels0, 0, pixels0.height / 2)
-            offscreen.context.putImageData(pixels1, 0, offscreen.height / 2 + pixels1.height / 2)
-            // draw frame
-            const { scaleOffsetX, scaleOffsetY, screen } = this
-            screen.clear()
-            screen.context.drawImage(offscreen.canvas, scaleOffsetX, scaleOffsetY)
-            //screen.debug(ejs.render(timerDebugTemplate, timer))
+        // timing
+        const { direction, screen, offscreen, timer } = this
+        if (timer.start === null) timer.start = 0
+        timer.delta = timestamp - timer.last
+        timer.last = timestamp
+        timer.rate = 1000 / timer.delta
+        // update
+        this.update()
+        // draw bars
+        screen.clear()
+        if (direction === Meter.Animations.Up) {
+            const { barHeightL, barHeightR, barGap, sx, dx } = this.animator
+            // draw left channel
+            screen.context.drawImage(
+                offscreen.canvas,
+                sx,
+                offscreen.height - barHeightL,
+                offscreen.width,
+                offscreen.height,
+                dx + barGap,
+                offscreen.height - barHeightL,
+                offscreen.width,
+                offscreen.height
+            )
+            // draw right channel
+            screen.context.drawImage(
+                offscreen.canvas,
+                sx,
+                offscreen.height - barHeightR,
+                offscreen.width,
+                offscreen.height,
+                dx + 3 * barGap,
+                offscreen.height - barHeightR,
+                offscreen.width,
+                offscreen.height
+            )
+        } else if (direction === Meter.Animations.Down) {
+            const { barHeightL, barHeightR, barGap, sx, sy, dx, dy } = this.animator
+            // draw left channel
+            screen.context.drawImage(offscreen.canvas, sx, sy, offscreen.width, barHeightL, dx + barGap, dy, offscreen.width, barHeightL)
+            // draw right channel
+            screen.context.drawImage(offscreen.canvas, sx, sy, offscreen.width, barHeightR, dx + 3 * barGap, dy, offscreen.width, barHeightR)
+        } else if (direction === Meter.Animations.Left) {
+            const { barHeightL, barHeightR, barWidth, barGap, sy, dy } = this.animator
+            // draw left channel
+            screen.context.drawImage(
+                offscreen.canvas,
+                offscreen.width - barHeightL,
+                sy,
+                offscreen.width,
+                barWidth,
+                offscreen.width - barHeightL,
+                dy + barGap,
+                offscreen.width,
+                barWidth
+            )
+            // draw right channel
+            screen.context.drawImage(
+                offscreen.canvas,
+                offscreen.width - barHeightR,
+                sy,
+                offscreen.width,
+                barWidth,
+                offscreen.width - barHeightR,
+                dy + 3 * barGap,
+                offscreen.width,
+                barWidth
+            )
+        } else if (direction === Meter.Animations.Right) {
+            const { barHeightL, barHeightR, barWidth, barGap, sx, sy, dx, dy } = this.animator
+            // draw left channel
+            screen.context.drawImage(offscreen.canvas, sx, sy, barHeightL, barWidth, dx, dy + barGap, barHeightL, barWidth)
+            // draw right channel
+            screen.context.drawImage(offscreen.canvas, sx, sy, barHeightR, barWidth, dx, dy + 3 * barGap, barHeightR, barWidth)
         }
+        // loop
         this.handle = requestAnimationFrame(this.draw.bind(this))
     }
     update() {
-        const { analyzerL, analyzerR, bufferL, bufferR, pixels0, pixels1 } = this
+        const { analyzerL, analyzerR, bufferL, bufferR, direction, offscreen } = this
         // update buffer
         analyzerL.getByteFrequencyData(bufferL)
         analyzerR.getByteFrequencyData(bufferR)
-        // update pixels
-        for (let pIndex = 0; pIndex < pixels0.data.length; pIndex += 4) {
-            pixels0.data[pIndex + 3] = 0
-            pixels1.data[pIndex + 3] = 0
-        }
-        const amplitude0 = Math.sqrt(
+        // update amplitudes
+        const amplitudeL = Math.sqrt(
             bufferL.reduce(function (accu, curr) {
                 return (accu += curr * curr)
             }, 0) / bufferL.length
         )
-        const amplitude1 = Math.sqrt(
+        const amplitudeR = Math.sqrt(
             bufferR.reduce(function (accu, curr) {
                 return (accu += curr * curr)
             }, 0) / bufferR.length
         )
-        const endX0 = Math.round((amplitude0 / 255) * pixels0.width)
-        const endX1 = Math.round((amplitude1 / 255) * pixels0.width)
-        for (let y = 0; y < pixels0.height; y++) {
-            for (let x = 0; x <= endX0; x++) {
-                const pIndex = (y * pixels0.width + x) * 4
-                const colorIndex = Math.floor((x / pixels0.width) * (this.colors.length - 1))
-                const color = this.colors[colorIndex]
-                pixels0.data[pIndex] = color.buffer[0]
-                pixels0.data[pIndex + 1] = color.buffer[1]
-                pixels0.data[pIndex + 2] = color.buffer[2]
-                pixels0.data[pIndex + 3] = 255
-            }
-        }
-        for (let y = 0; y < pixels1.height; y++) {
-            for (let x = 0; x <= endX1; x++) {
-                const pIndex = (y * pixels1.width + x) * 4
-                const colorIndex = Math.floor((x / pixels1.width) * (this.colors.length - 1))
-                const color = this.colors[colorIndex]
-                pixels1.data[pIndex] = color.buffer[0]
-                pixels1.data[pIndex + 1] = color.buffer[1]
-                pixels1.data[pIndex + 2] = color.buffer[2]
-                pixels1.data[pIndex + 3] = 255
-            }
+        if (direction === Meter.Animations.Left || direction === Meter.Animations.Right) {
+            this.animator.barHeightL = Math.ceil((amplitudeL / 255) * offscreen.width)
+            this.animator.barHeightR = Math.ceil((amplitudeR / 255) * offscreen.width)
+        } else {
+            this.animator.barHeightL = Math.ceil((amplitudeL / 255) * offscreen.height)
+            this.animator.barHeightR = Math.ceil((amplitudeR / 255) * offscreen.height)
         }
     }
 }
