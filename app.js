@@ -42,6 +42,7 @@ function create(options = {}) {
         next()
     })
 
+    app.use('/bin', express.static(path.join(__dirname, 'bin')))
     app.use('/src', express.static(path.join(__dirname, 'src')))
     app.use('/music', express.static(musicPath), musicRouter)
     app.use('/', express.static(path.join(__dirname, 'public')), crudRouter)
